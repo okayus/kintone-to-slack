@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/kintone/js-sdk/%40kintone/plugin-manifest-validator%4010.2.0/packages/plugin-manifest-validator/manifest-schema.json",
+  "manifest_version": 1,
+  "version": 1,
+  "type": "APP",
+  "desktop": {
+    "js": [
+      "https://js.cybozu.com/spinjs/2.3.2/spin.min.js",
+      "js/kintone-to-slack-v0.1.0-desktop.js"
+    ],
+    "css": [
+      "css/51-modern-default.css",
+      "css/desktop.css"
+    ]
+  },
+  "icon": "image/icon.png",
+  "config": {
+    "html": "html/config.html",
+    "js": [
+      "js/kintone-to-slack-v0.1.0-config.js"
+    ],
+    "css": [
+      "css/51-modern-default.css",
+      "css/config.css"
+    ],
+    "required_params": [
+      "config"
+    ]
+  },
+  "name": {
+    "en": "kintone-to-slack",
+    "ja": "kintone-to-slack"
+  },
+  "description": {
+    "en": "kintone-to-slack",
+    "ja": "kintone-to-slack"
+  }
+}

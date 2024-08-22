@@ -1,0 +1,13 @@
+node_modules
+private.ppk
+plugin/js
+jsdoc
+dist
+.env
+.DS_Store
+
+dist/
+plugin/js/*.js
+
+.zsh_history
+private.ppk
