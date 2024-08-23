@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Form from "@rjsf/core";
+import Form from "@rjsf/mui";
 import type { IChangeEvent } from "@rjsf/core";
 import type { RJSFSchema } from "@rjsf/utils";
 import validator from "@rjsf/validator-ajv8";
@@ -28,11 +28,6 @@ const baseSchema: RJSFSchema = {
 const log = (type: string) => console.log.bind(console, type);
 
 const App: React.FC<AppProps> = ({ pluginId }) => {
-  // useEffect(() => {
-  //   // PLUGIN_IDは、プラグインのIDを指定する必要があります。
-  //   const config = kintone.plugin.app.getConfig(pluginId);
-  //   console.log("Plugin Config:", config);
-  // }, [pluginId]);
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
 
   useEffect(() => {
