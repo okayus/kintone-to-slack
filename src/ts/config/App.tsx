@@ -58,6 +58,7 @@ const log = (type: string) => console.log.bind(console, type);
 const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
   const [appOptions, setAppOptions] = useState<any>([]);
   const [fieldOptions, setFieldOptions] = useState<any>([]);
+  const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -67,16 +68,19 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
           return { const: app.appId, title: app.name };
         });
         setAppOptions(options);
+
+        const config = kintone.plugin.app.getConfig(pluginId);
+        if (config) {
+          setFormData(JSON.parse(config));
+        }
+        console.log("Plugin Config:", config);
       } catch (error) {
         console.error("Failed to fetch apps:", error);
       }
     };
 
     fetchApps();
-
-    const config = kintone.plugin.app.getConfig(pluginId);
-    console.log("Plugin Config:", config);
-  }, [pluginId]);
+  }, [pluginId, cacheAPI]);
 
   const handleAppChange = async (appId: string) => {
     try {
@@ -91,8 +95,8 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
   };
 
   const handleSubmit = (data: IChangeEvent<any, RJSFSchema, any>) => {
-    const { formData } = data;
-    const configSetting = { config: formData };
+    const submittedData = data.formData; // ここで変数名を変更
+    const configSetting = { config: submittedData };
     kintone.plugin.app.setConfig(
       { config: JSON.stringify(configSetting) },
       function () {
@@ -105,9 +109,10 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
   const handleChange = (data: IChangeEvent<any, RJSFSchema, any>) => {
     console.log("change", data);
     const selectedAppId = data.formData?.config?.[0]?.app;
-    if (selectedAppId) {
+    if (selectedAppId && selectedAppId !== formData?.config?.[0]?.app) {
       handleAppChange(selectedAppId);
     }
+    setFormData(data.formData); // フォームデータを保存
     log("changed")(data);
   };
 
@@ -159,6 +164,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
       validator={validator}
       onChange={handleChange}
       onSubmit={handleSubmit}
+      formData={formData} // 保存されたフォームデータを渡す
       onError={log("errors")}
     />
   );
