@@ -1,68 +1,98 @@
 import React, { useEffect, useState } from "react";
+
 import Form from "@rjsf/mui";
+import validator from "@rjsf/validator-ajv8";
+
+import { CacheAPI } from "../common/util/CacheAPI";
+
 import type { IChangeEvent } from "@rjsf/core";
 import type { RJSFSchema } from "@rjsf/utils";
-import validator from "@rjsf/validator-ajv8";
+import type { JSONSchema7 } from "json-schema";
 
 interface AppProps {
   pluginId: string;
+  cacheAPI: CacheAPI;
 }
 
 const baseSchema: RJSFSchema = {
-  title: "Todo",
+  title: "config",
   type: "object",
-  required: ["title"],
   properties: {
-    title: { type: "string", title: "Title", default: "A new task" },
-    type: {
-      type: "string",
-      title: "Type",
-      enum: ["Work", "Personal", "Shopping", "Health", "Other"],
-      default: "Work",
+    config: {
+      type: "array",
+      title: "設定",
+      items: {
+        type: "object",
+        properties: {
+          app: {
+            type: "string",
+            title: "App",
+            oneOf: [],
+          },
+          mapping: {
+            type: "array",
+            title: "マッピング",
+            items: {
+              type: "object",
+              properties: {
+                field: {
+                  type: "string",
+                  title: "フィールド",
+                  oneOf: [],
+                },
+                column: {
+                  type: "string",
+                  title: "CSVの列",
+                },
+              },
+            },
+          },
+        },
+      },
     },
-    done: { type: "boolean", title: "Done?", default: false },
-    status: { type: "string", title: "Status", enum: [] },
   },
 };
 
 const log = (type: string) => console.log.bind(console, type);
 
-const App: React.FC<AppProps> = ({ pluginId }) => {
-  const [statusOptions, setStatusOptions] = useState<string[]>([]);
+const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
+  const [appOptions, setAppOptions] = useState<any>([]);
+  const [fieldOptions, setFieldOptions] = useState<any>([]);
 
   useEffect(() => {
-    const fetchStatus = async () => {
-      const body = {
-        app: kintone.app.getId(),
-      };
+    const fetchApps = async () => {
       try {
-        const response = await kintone.api(
-          kintone.api.url("/k/v1/app/status.json", true),
-          "GET",
-          body,
-        );
-        console.log("response:", response); // 取得したステータスをコンソールに表示
-        const statusKeys = Object.keys(response.states);
-        setStatusOptions(statusKeys);
+        const response = await cacheAPI.getApps();
+        const options = response.apps.map((app: any) => {
+          return { const: app.appId, title: app.name };
+        });
+        setAppOptions(options);
       } catch (error) {
-        console.error("Failed to fetch status:", error);
+        console.error("Failed to fetch apps:", error);
       }
     };
 
-    fetchStatus();
+    fetchApps();
 
     const config = kintone.plugin.app.getConfig(pluginId);
     console.log("Plugin Config:", config);
   }, [pluginId]);
 
-  const handleSubmit = (
-    data: IChangeEvent<any, RJSFSchema, any>,
-    event: React.FormEvent<any>,
-  ) => {
-    console.log("submit", event);
+  const handleAppChange = async (appId: string) => {
+    try {
+      const response = await cacheAPI.getFields(Number(appId));
+      const options = Object.keys(response).map((fieldCode) => {
+        return { const: fieldCode, title: response[fieldCode].label };
+      });
+      setFieldOptions(options);
+    } catch (error) {
+      console.error("Failed to fetch fields:", error);
+    }
+  };
+
+  const handleSubmit = (data: IChangeEvent<any, RJSFSchema, any>) => {
     const { formData } = data;
     const configSetting = { config: formData };
-    // ここでKintoneのプラグイン設定にデータを保存
     kintone.plugin.app.setConfig(
       { config: JSON.stringify(configSetting) },
       function () {
@@ -72,26 +102,62 @@ const App: React.FC<AppProps> = ({ pluginId }) => {
     );
   };
 
-  // スキーマを動的に更新
+  const handleChange = (data: IChangeEvent<any, RJSFSchema, any>) => {
+    console.log("change", data);
+    const selectedAppId = data.formData?.config?.[0]?.app;
+    if (selectedAppId) {
+      handleAppChange(selectedAppId);
+    }
+    log("changed")(data);
+  };
+
   const dynamicSchema = {
     ...baseSchema,
     properties: {
       ...baseSchema.properties,
-      status: {
-        ...(typeof baseSchema.properties?.status === "object" &&
-        baseSchema.properties.status !== null
-          ? baseSchema.properties.status
-          : {}), // statusプロパティがオブジェクトかどうかを確認
-        enum: statusOptions, // APIから取得したステータスを設定
+      config: {
+        ...(typeof baseSchema.properties?.config === "object" &&
+        baseSchema.properties.config !== null
+          ? (baseSchema.properties.config as JSONSchema7)
+          : {}),
+        items: {
+          type: "object",
+          properties: {
+            ...(typeof baseSchema.properties?.config === "object" &&
+            baseSchema.properties.config.items !== null &&
+            (baseSchema.properties.config.items as JSONSchema7).properties
+              ? (baseSchema.properties.config.items as JSONSchema7).properties
+              : {}),
+            app: {
+              type: "string",
+              oneOf: appOptions,
+            },
+            mapping: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  field: {
+                    type: "string",
+                    oneOf: fieldOptions,
+                  },
+                  column: {
+                    type: "string",
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
   };
 
   return (
     <Form
-      schema={dynamicSchema}
+      schema={dynamicSchema as RJSFSchema}
       validator={validator}
-      onChange={log("changed")}
+      onChange={handleChange}
       onSubmit={handleSubmit}
       onError={log("errors")}
     />
