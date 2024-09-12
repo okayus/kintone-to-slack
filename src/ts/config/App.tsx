@@ -85,6 +85,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
   const handleAppChange = async (appId: string) => {
     try {
       const response = await cacheAPI.getFields(Number(appId));
+      console.log("Fields:", response);
       const options = Object.keys(response).map((fieldCode) => {
         return { const: fieldCode, title: response[fieldCode].label };
       });
@@ -95,7 +96,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
   };
 
   const handleSubmit = (data: IChangeEvent<any, RJSFSchema, any>) => {
-    const submittedData = data.formData; // ここで変数名を変更
+    const submittedData = data.formData;
     const configSetting = { config: submittedData };
     kintone.plugin.app.setConfig(
       { config: JSON.stringify(configSetting) },
@@ -112,7 +113,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
     if (selectedAppId && selectedAppId !== formData?.config?.[0]?.app) {
       handleAppChange(selectedAppId);
     }
-    setFormData(data.formData); // フォームデータを保存
+    setFormData(data.formData);
     log("changed")(data);
   };
 
@@ -164,7 +165,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
       validator={validator}
       onChange={handleChange}
       onSubmit={handleSubmit}
-      formData={formData} // 保存されたフォームデータを渡す
+      formData={formData}
       onError={log("errors")}
     />
   );

@@ -33,6 +33,8 @@ export class CacheAPI {
   }
 
   public async getFields(appId: number) {
+    console.log("getFields appId", appId);
+    console.log("getFields this.forms", this.forms);
     if (!this.forms[appId]) {
       this.forms[appId] = await Sdk.getFields(appId);
     }

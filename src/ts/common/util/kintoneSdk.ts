@@ -24,20 +24,18 @@ export interface ParamsToDeleteRecords {
 }
 
 export class KintoneUrlUtil {
-  private fields: Record<string, KintoneFormFieldProperty.OneOf> = {};
+  // private fields: Record<string, KintoneFormFieldProperty.OneOf> = {};
 
   public getRestApiClient(): KintoneRestAPIClient {
     return new KintoneRestAPIClient({});
   }
 
   public fetchFields = async (appId: number, preview: boolean = true) => {
-    if (Object.keys(this.fields).length === 0) {
-      const restApiClient = this.getRestApiClient();
-      this.fields = (
-        await restApiClient.app.getFormFields({ app: appId, preview })
-      ).properties;
-    }
-    return this.fields;
+    const restApiClient = this.getRestApiClient();
+    const fields = (
+      await restApiClient.app.getFormFields({ app: appId, preview })
+    ).properties;
+    return fields;
   };
 
   public getApps = async () => {
@@ -87,7 +85,8 @@ export class Sdk {
   }
 
   public async getFields(appId: number) {
-    return this.kintoneUrlUtil.fetchFields(appId);
+    const res = await this.kintoneUrlUtil.fetchFields(appId);
+    return res;
   }
 
   public async getAllRecords(param: ParamsToGetRecords) {
