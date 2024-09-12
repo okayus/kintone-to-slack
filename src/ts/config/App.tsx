@@ -69,11 +69,11 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
         });
         setAppOptions(options);
 
-        const config = kintone.plugin.app.getConfig(pluginId);
-        if (config) {
-          setFormData(JSON.parse(config));
+        const responseConfig = kintone.plugin.app.getConfig(pluginId);
+        if (responseConfig) {
+          const parsedConfig = JSON.parse(responseConfig.config);
+          setFormData(parsedConfig.config);
         }
-        console.log("Plugin Config:", config);
       } catch (error) {
         console.error("Failed to fetch apps:", error);
       }
