@@ -1,5 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+
 import type { SavedConfig } from "../common/types";
 
 ((PLUGIN_ID) => {
@@ -8,14 +9,14 @@ import type { SavedConfig } from "../common/types";
   const config: SavedConfig = {
     done: parsedConfig.config.done,
     status: parsedConfig.config.status,
-    title: parsedConfig.config.title,
+    title: parsedConfig.config.config[0].mapping[0].column,
     type: parsedConfig.config.type,
   };
 
   const sendSlackMessage = async (token: string, message: string) => {
     const url = "https://slack.com/api/chat.postMessage";
     const payload = {
-      channel: "#C06RQEZCFUN", // チャンネルIDを指定してください
+      channel: "C06RQEZCFUN", // チャンネルIDを指定してください
       text: message,
     };
 
@@ -25,13 +26,10 @@ import type { SavedConfig } from "../common/types";
     };
 
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(payload),
-      });
+      const response = await kintone.proxy(url, "POST", headers, payload);
 
-      const result = await response.json();
+      console.log(response);
+      const result = JSON.parse(response[0]);
 
       if (!result.ok) {
         console.error("Slack message failed:", result.error);
