@@ -2,6 +2,7 @@ import path from "path";
 
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 const root = `${process.cwd()}`;
 
@@ -23,23 +24,11 @@ export default defineConfig({
         config: `${path.resolve(root, "src/ts/config/config.tsx")}/`,
       },
       output: {
-        format: "module",
-        preserveModules: false,
-        manualChunks: {
-          config: [`${path.resolve(root, "src/ts/config/config.tsx")}/`],
-        },
+        format: "iife",
         entryFileNames: "js/[name].js",
-        assetFileNames: "js/[name][extname]",
+        chunkFileNames: "js/[name]-chunk.js",
       },
     },
   },
-  esbuild: {
-    drop: ["console", "debugger"],
-  },
-  plugins: [react()],
-  test: {
-    globals: true,
-    environment: "happy-dom",
-    setupFiles: ["./vitest-setup.ts"],
-  },
+  plugins: [react(), tsconfigPaths()],
 });

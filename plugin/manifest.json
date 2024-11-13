@@ -5,7 +5,7 @@
   "type": "APP",
   "desktop": {
     "js": [
-      "js/kintone-to-slack-desktop.js"
+      "js/desktop.js"
     ],
     "css": [
       "css/51-modern-default.css",
@@ -16,7 +16,7 @@
   "config": {
     "html": "html/config.html",
     "js": [
-      "js/kintone-to-slack-config.js"
+      "js/config.js"
     ],
     "css": [
       "css/51-modern-default.css",
@@ -28,7 +28,7 @@
   },
   "name": {
     "en": "kintone-to-slack",
-    "ja": "kintone-to-slack"
+    "ja": "kintone-to-slackdevd"
   },
   "description": {
     "en": "kintone-to-slack",
