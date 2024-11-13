@@ -1,28 +1,16 @@
 {
   "name": "kintone-to-slack",
   "version": "0.1.0",
-  "description": "kintone-to-slack",
-  "license": "UNLICENSED",
   "scripts": {
-    "setup": "npm ci",
-    "start": "npm run develop",
-    "bundle:dev": "tsc --noEmit && NODE_ENV=development webpack --mode development",
-    "bundle:prod": "tsc --noEmit && NODE_ENV=production webpack --mode production",
-    "build": "webpack --mode production",
+    "start": "node scripts/npm-start.js",
+    "develop_vite_config": "vite build -c vite_config.config.ts --watch",
+    "develop_vite_desktop": "vite build -c vite_desktop.config.ts --watch",
+    "build": "vite build -c vite_config.config.ts && vite build -c vite_desktop.config.ts && kintone-plugin-packer --ppk private.ppk --out dist/plugin.zip dist/out",
+    "develop_pack": "npm run pack -- --watch",
+    "pack": "kintone-plugin-packer --ppk private.ppk --out dist/plugin.zip dist/out",
     "upload": ". ./.env && kintone-plugin-uploader dist/plugin.zip --base-url $KINTONE_BASE_URL --username $KINTONE_USERNAME --password $KINTONE_PASSWORD",
-    "develop": "run-s bundle:dev upload",
-    "develop:watch": "npm-watch develop",
-    "production": "run-s bundle:prod upload",
-    "lint": "eslint --ext .tsx,.ts src/ "
-  },
-  "watch": {
-    "develop": {
-      "patterns": [
-        "src",
-        "./plugin/manifest.json"
-      ],
-      "extensions": "html,tsx,ts,css,js,jsx,png,gif,svg,json"
-    }
+    "lint": "eslint src",
+    "test": "vitest"
   },
   "devDependencies": {
     "@babel/core": "^7.22.17",
@@ -31,27 +19,30 @@
     "@babel/preset-react": "^7.22.15",
     "@babel/preset-typescript": "^7.22.15",
     "@cybozu/eslint-config": "^23.0.0",
-    "@kintone/create-plugin": "^8.2.3",
     "@kintone/dts-gen": "^8.0.12",
+    "@kintone/plugin-packer": "^8.1.2",
     "@kintone/plugin-uploader": "^9.1.2",
-    "@kintone/webpack-plugin-kintone-plugin": "^8.0.9",
-    "@types/node": "^20.6.5",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.1",
+    "@types/mermaid": "^9.1.0",
+    "@types/node": "^20.17.6",
     "@types/react": "^18.2.23",
     "@types/react-dom": "^18.2.8",
+    "@vitejs/plugin-react": "^4.3.3",
     "babel-loader": "^9.1.3",
     "css-loader": "^7.1.2",
     "eslint": "^8.57.0",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
+    "jsdom": "^25.0.1",
     "npm-run-all": "^4.1.5",
     "npm-watch": "^0.13.0",
     "prettier": "^3.0.3",
     "style-loader": "^4.0.0",
-    "tsconfig-paths-webpack-plugin": "^4.1.0",
     "typescript": "^5.2.2",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4",
-    "webpack-merge": "^5.9.0"
+    "vite": "^5.4.10",
+    "vite-tsconfig-paths": "^5.1.2",
+    "vitest": "^2.1.4"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

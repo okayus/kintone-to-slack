@@ -5,8 +5,7 @@
   "type": "APP",
   "desktop": {
     "js": [
-      "https://js.cybozu.com/spinjs/2.3.2/spin.min.js",
-      "js/kintone-to-slack-v0.1.0-desktop.js"
+      "js/kintone-to-slack-desktop.js"
     ],
     "css": [
       "css/51-modern-default.css",
@@ -17,7 +16,7 @@
   "config": {
     "html": "html/config.html",
     "js": [
-      "js/kintone-to-slack-v0.1.0-config.js"
+      "js/kintone-to-slack-config.js"
     ],
     "css": [
       "css/51-modern-default.css",

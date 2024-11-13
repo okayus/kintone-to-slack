@@ -8,7 +8,6 @@ const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 
 const packageJson = require("./package.json");
 
-const pluginVersion = packageJson.version;
 const pluginName = packageJson.name;
 
 // https://webpack.js.org/configuration/mode/#mode-none
@@ -20,7 +19,7 @@ module.exports = (env, arg) => {
     },
     output: {
       path: path.resolve(__dirname, "plugin", "js"),
-      filename: `${pluginName}-v${pluginVersion}-[name].js`,
+      filename: `${pluginName}-[name].js`,
     },
     plugins: [
       new KintonePlugin({
@@ -38,7 +37,11 @@ module.exports = (env, arg) => {
             {
               loader: "babel-loader",
               options: {
-                presets: ["@babel/preset-env", "@babel/preset-react", "@babel/preset-typescript"],
+                presets: [
+                  "@babel/preset-env",
+                  "@babel/preset-react",
+                  "@babel/preset-typescript",
+                ],
                 plugins: ["@babel/plugin-transform-runtime"],
                 cacheDirectory: true,
               },
@@ -64,7 +67,6 @@ module.exports = (env, arg) => {
       },
     },
     optimization: {
-      // not to extract license comment
       minimizer: [
         new TerserPlugin({
           extractComments: false,
