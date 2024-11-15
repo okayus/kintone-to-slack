@@ -14,7 +14,7 @@ export default defineConfig({
     target: "es2015",
     outDir: `${path.resolve(__dirname)}/dist/out`,
     emptyOutDir: false,
-    sourcemap: false,
+    sourcemap: true,
     minify: "esbuild",
     chunkSizeWarningLimit: 1000,
     reportCompressedSize: true,
