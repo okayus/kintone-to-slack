@@ -79,9 +79,20 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
               type: "string",
               description: "対象のレコード一覧のID",
             },
+            buttonName: {
+              type: "string",
+              description: "通知ボタンの表示名",
+            },
             slackChannelId: {
               type: "string",
               description: "通知先のSlackチャンネルID",
+            },
+            slackIdField: {
+              type: "array",
+              items: {
+                type: "string",
+              },
+              description: "チャンネルに招待するユーザーのIDのフィールド",
             },
             messageTemplate: {
               type: "string",

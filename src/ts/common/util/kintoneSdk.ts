@@ -1,27 +1,7 @@
 import {
-  KintoneRestAPIClient,
   KintoneFormFieldProperty,
+  KintoneRestAPIClient,
 } from "@kintone/rest-api-client";
-
-export interface ParamsToGetRecords {
-  app: number;
-  condition?: string;
-  fields?: string[];
-}
-
-export interface ParamsToAddRecords {
-  app: number;
-  records: any[];
-}
-
-interface ParamsToDeleteRecord {
-  id: number;
-}
-
-export interface ParamsToDeleteRecords {
-  app: number;
-  records: ParamsToDeleteRecord[];
-}
 
 export class KintoneUrlUtil {
   // private fields: Record<string, KintoneFormFieldProperty.OneOf> = {};
@@ -49,6 +29,22 @@ export class KintoneUrlUtil {
     ).layout;
     return formLayout;
   };
+
+  public getRecords = async (
+    appId: number,
+    fields: string[],
+    query: string,
+    totalCount: boolean = false,
+  ) => {
+    const restApiClient = this.getRestApiClient();
+    const records = await restApiClient.record.getRecords({
+      app: appId,
+      fields: fields,
+      query: query,
+      totalCount: totalCount,
+    });
+    return records;
+  };
 }
 
 export class Sdk {
@@ -70,6 +66,11 @@ export class Sdk {
 
   public async getFormLayout(appId: number) {
     const res = await this.kintoneUrlUtil.getFormLayout(appId);
+    return res;
+  }
+
+  public async getRecords(appId: number, fields: string[], query: string) {
+    const res = await this.kintoneUrlUtil.getRecords(appId, fields, query);
     return res;
   }
 }

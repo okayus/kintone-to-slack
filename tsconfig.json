@@ -33,5 +33,6 @@
     }
   },
   "include": ["./src/ts/**/*.ts", "./src/ts/**/*.tsx","vitest-setup.ts"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["dist", "node_modules"],
+  "sourceMap": true
 }

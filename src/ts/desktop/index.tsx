@@ -1,174 +1,99 @@
-import Sdk, { Sdk } from "../common/util/kintoneSdk";
+import Sdk from "../common/util/kintoneSdk";
 
-// Slack APIに関する操作をカプセル化したクラス
-class SlackService {
-  private botToken: string;
+import { NotificationManager } from "./service/NotificationManager";
+import { SlackService } from "./service/SlackService";
 
-  constructor(botToken: string) {
-    this.botToken = botToken;
-  }
+// ボタンの描画
+const renderButton = (onClick: () => void) => {
+  const headerMenuSpace = kintone.app.getHeaderMenuSpaceElement();
+  if (!headerMenuSpace) return;
 
-  // チャンネルに参加中のメンバーを取得
-  async getChannelMembers(channelId: string): Promise<string[]> {
-    const response = await fetch(
-      `https://slack.com/api/conversations.members?channel=${channelId}`,
-      {
-        headers: { Authorization: `Bearer ${this.botToken}` },
-      },
-    );
-    const data = await response.json();
-    if (!data.ok) throw new Error("Failed to fetch channel members");
-    return data.members;
-  }
+  const container = document.createElement("div");
+  const button = document.createElement("button");
+  button.textContent = "通知する";
+  button.onclick = onClick;
 
-  // メンバーをチャンネルに招待
-  async inviteMembersToChannel(channelId: string, userIds: string[]) {
-    const response = await fetch("https://slack.com/api/conversations.invite", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.botToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ channel: channelId, users: userIds.join(",") }),
-    });
-    const data = await response.json();
-    if (!data.ok) throw new Error("Failed to invite members to channel");
-  }
+  container.appendChild(button);
+  headerMenuSpace.appendChild(container);
+};
 
-  // メッセージを送信
-  async postMessage(channelId: string, text: string): Promise<string> {
-    const response = await fetch("https://slack.com/api/chat.postMessage", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.botToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ channel: channelId, text }),
-    });
-    const data = await response.json();
-    if (!data.ok) throw new Error("Failed to post message");
-    return data.message.ts; // メッセージのタイムスタンプを返す
-  }
+interface KintoneEvent {
+  record: any;
+  viewId: number;
 }
-
-// 通知処理を管理するクラス
-class NotificationManager {
-  private slackService: SlackService;
-  private client: typeof Sdk;
-  private config: {
-    recordListId: string;
-    slackChannelId: string;
-    messageTemplate: string;
-    notificationCondition: any;
-    notificationLinkField: string;
-  };
-
-  constructor(slackService: SlackService, client: typeof Sdk, config: any) {
-    this.slackService = slackService;
-    this.client = client;
-    this.config = config;
-  }
-
-  // レコードを取得
-  private async fetchRecords(): Promise<any[]> {
-    const query = `${this.config.notificationCondition.field} ${this.config.notificationCondition.operator} "${this.config.notificationCondition.value}"`;
-    const records = await this.client.getFields(kintone.app.getId()!);
-    return [records];
-  }
-
-  // メッセージを生成
-  private generateMessages(records: any[]): string[] {
-    const messages: string[] = [];
-    let currentMessage = "";
-
-    for (const record of records) {
-      const message = this.config.messageTemplate.replace(
-        /\[(.*?)\]/g,
-        (_, fieldCode) => record[fieldCode]?.value || "",
-      );
-      if ((currentMessage + message).length > 3000) {
-        messages.push(currentMessage);
-        currentMessage = "";
-      }
-      currentMessage += `${message}\n`;
-    }
-    if (currentMessage) messages.push(currentMessage);
-    return messages;
-  }
-
-  // 通知リンクを更新
-  private async updateNotificationLinks(records: any[], link: string) {
-    const updatePromises = records.map((record) => {
-      return this.client.record.updateRecord({
-        app: kintone.app.getId()!,
-        id: record.$id.value,
-        record: { [this.config.notificationLinkField]: { value: link } },
-      });
-    });
-    await Promise.all(updatePromises);
-  }
-
-  // 通知処理
-  public async notify() {
-    const records = await this.fetchRecords();
-    if (!records.length) return;
-
-    const memberIds = new Set(
-      records.flatMap((record) =>
-        [record.slackid?.value, record.slackid2?.value].filter(Boolean),
-      ),
-    );
-    const currentMembers = await this.slackService.getChannelMembers(
-      this.config.slackChannelId,
-    );
-
-    const nonMembers = Array.from(memberIds).filter(
-      (id) => !currentMembers.includes(id),
-    );
-    if (nonMembers.length) {
-      await this.slackService.inviteMembersToChannel(
-        this.config.slackChannelId,
-        nonMembers,
-      );
-    }
-
-    const messages = this.generateMessages(records);
-    for (const message of messages) {
-      const ts = await this.slackService.postMessage(
-        this.config.slackChannelId,
-        message,
-      );
-      const slackLink = `https://slack.com/app_redirect?channel=${this.config.slackChannelId}&message=${ts}`;
-      await this.updateNotificationLinks(records, slackLink);
-    }
-  }
-}
-
 ((PLUGIN_ID) => {
-  kintone.events.on(["app.record.index.show"], (event) => {
-    const pluginConfig = kintone.plugin.app.getConfig("your_plugin_id");
-    const config = JSON.parse(pluginConfig || "{}");
-    const slackService = new SlackService(config.slackBotToken);
-    const client = new KintoneRestAPIClient();
+  // メイン処理
+  kintone.events.on("app.record.index.show", async (event: KintoneEvent) => {
+    const pluginConfig = kintone.plugin.app.getConfig(PLUGIN_ID).config;
+    if (!pluginConfig) return;
 
-    if (kintone.app.getViewId() === config.recordListId) {
+    const config = JSON.parse(pluginConfig).config;
+    const slackService = new SlackService(config.commonSettings.slackBotToken);
+
+    // ビューが一致する場合にボタンを追加
+    console.log(
+      "config.notificationSettings[].recordListId",
+      config.notificationSettings[0].recordListId,
+    );
+    console.log("event.viewId", event.viewId);
+    // if (event.viewId === config.recordListId) {
+    config.notificationSettings.forEach((notificationSetting: any) => {
+      // const shouldRenderButton =
+      //   notificationSetting.recordListId === event.viewId;
+      // if (shouldRenderButton) continue;
       const notificationManager = new NotificationManager(
         slackService,
-        client,
-        config,
+        notificationSetting,
       );
+      const onNotifyButtonClick = async () => {
+        try {
+          const appId = kintone.app.getId();
+          if (!appId) throw new Error("アプリIDを取得できませんでした");
 
-      // ボタンのレンダリング
-      const container = document.createElement("div");
-      const headerMenuSpace = kintone.app.getHeaderMenuSpaceElement();
-      if (headerMenuSpace) {
-        headerMenuSpace.appendChild(container);
+          const condition = kintone.app.getQueryCondition() || "";
+          const records = (await Sdk.getRecords(appId, [], condition)).records;
+          console.log("records", records);
 
-        const button = document.createElement("button");
-        button.textContent = "通知する";
-        button.onclick = () => notificationManager.notify();
-        container.appendChild(button);
-      }
-    }
+          if (!records.length) {
+            alert("対象レコードがありません");
+            return;
+          }
+
+          await notificationManager.notify(records);
+          alert("通知が完了しました");
+        } catch (error) {
+          console.error("通知処理中にエラーが発生しました:", error);
+          alert("通知処理中にエラーが発生しました");
+        }
+      };
+
+      renderButton(onNotifyButtonClick);
+    });
+    // const notificationManager = new NotificationManager(slackService, config);
+
+    // // ボタンクリックイベント
+    // const onNotifyButtonClick = async () => {
+    //   try {
+    //     const appId = kintone.app.getId();
+    //     if (!appId) throw new Error("アプリIDを取得できませんでした");
+
+    //     const condition = `${config.notificationCondition.field} ${config.notificationCondition.operator} "${config.notificationCondition.value}"`;
+    //     const records = (await Sdk.getRecords(appId, [], condition)).records;
+
+    //     if (!records.length) {
+    //       alert("対象レコードがありません");
+    //       return;
+    //     }
+
+    //     await notificationManager.notify(records);
+    //     alert("通知が完了しました");
+    //   } catch (error) {
+    //     console.error("通知処理中にエラーが発生しました:", error);
+    //     alert("通知処理中にエラーが発生しました");
+    //   }
+    // };
+
+    // renderButton(onNotifyButtonClick);
+    // }
   });
 })(kintone.$PLUGIN_ID);
