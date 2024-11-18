@@ -6,7 +6,7 @@ interface AppProps {
 
 export const useOnClickButton = (config: AppProps) => {
   const onClickButton = useCallback(async () => {
-    const url = "xoxb-6883604668964-7605841805350-rl8AkvsZz5UJFgseLAgl5GFK";
+    const url = "";
     await inviteChannel(url);
     // await sendSlackMessage(url, "テスト");
     console.log("config:", config);
