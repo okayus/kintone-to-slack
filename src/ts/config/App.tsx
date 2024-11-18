@@ -6,7 +6,7 @@ import validator from "@rjsf/validator-ajv8";
 import { CacheAPI } from "../common/util/CacheAPI";
 
 import type { IChangeEvent } from "@rjsf/core";
-import type { FieldProps, RJSFSchema, UiSchema } from "@rjsf/utils";
+import type { RJSFSchema } from "@rjsf/utils";
 
 interface AppProps {
   pluginId: string;
@@ -14,68 +14,6 @@ interface AppProps {
 }
 
 const log = (type: string) => console.log.bind(console, type);
-type FieldType = {
-  type: string;
-  code: string;
-  label: string;
-  noLabel: boolean;
-  required?: boolean;
-  enabled?: boolean;
-};
-
-interface CustomPrimaryKeyFieldProps extends FieldProps {
-  appId?: string;
-  cacheAPI: CacheAPI;
-}
-
-const CustomPrimaryKeyField: React.FC<CustomPrimaryKeyFieldProps> = ({
-  formData,
-  onChange,
-  uiSchema,
-  cacheAPI,
-}) => {
-  const [options, setOptions] = useState<any[]>([]);
-  const appId = uiSchema?.appId[0];
-
-  useEffect(() => {
-    const fetchPrimaryKeyFieldOptions = async () => {
-      if (appId) {
-        const fields = await cacheAPI.getFields(appId);
-        const filteredOptions = Object.entries(fields)
-          .filter(
-            ([_, field]) => (field as FieldType).type === "SINGLE_LINE_TEXT",
-          )
-          .map(([_, field]) => ({
-            const: (field as FieldType).label,
-            title: (field as FieldType).code,
-          }));
-        setOptions([{ const: "", title: "" }, ...filteredOptions]);
-      }
-    };
-
-    fetchPrimaryKeyFieldOptions();
-  }, [appId, cacheAPI]);
-
-  return (
-    <select value={formData || ""} onChange={(e) => onChange(e.target.value)}>
-      {options.map((option) => (
-        <option key={option.const} value={option.const}>
-          {option.title}
-        </option>
-      ))}
-    </select>
-  );
-};
-
-const CustomPrimaryKeyFieldWrapper = (cacheAPI: CacheAPI) => {
-  const WrappedCustomPrimaryKeyField = (props: FieldProps) => (
-    <CustomPrimaryKeyField {...props} cacheAPI={cacheAPI} />
-  );
-
-  WrappedCustomPrimaryKeyField.displayName = "WrappedCustomPrimaryKeyField";
-
-  return WrappedCustomPrimaryKeyField;
-};
 
 const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
   const [appOptions, setAppOptions] = useState<any[]>([]);
@@ -115,54 +53,85 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
   };
 
   const dynamicSchema = {
-    title: "プラグインの設定t",
     type: "object",
     properties: {
-      settings: {
+      commonSettings: {
+        type: "object",
+        properties: {
+          slackBotToken: {
+            type: "string",
+            description: "Slackボットのトークン",
+          },
+          errorNotificationWebhook: {
+            type: "string",
+            description: "エラー時の通知用Webhook URL",
+          },
+        },
+        required: ["slackBotToken", "errorNotificationWebhook"],
+        description: "共通設定",
+      },
+      notificationSettings: {
         type: "array",
-        title: "設定",
         items: {
           type: "object",
           properties: {
-            app: {
+            recordListId: {
               type: "string",
-              title: "患者マスターアプリ",
-              oneOf: appOptions,
+              description: "対象のレコード一覧のID",
             },
-            primaryKeyField: {
+            slackChannelId: {
               type: "string",
-              title: "患者・カルテID",
+              description: "通知先のSlackチャンネルID",
+            },
+            messageTemplate: {
+              type: "string",
+              description:
+                "通知メッセージのテンプレート（例: '@[slackidフィールド] [文字列1行フィールド]）",
+            },
+            notificationCondition: {
+              type: "object",
+              description: "通知対象レコードの条件",
+              properties: {
+                field: {
+                  type: "string",
+                  description: "条件に使用するフィールド名",
+                },
+                operator: {
+                  type: "string",
+                  enum: ["equals", "notEquals", "isEmpty", "isNotEmpty"],
+                  description: "条件演算子",
+                },
+                value: {
+                  type: ["string", "null"],
+                  description: "条件値（必要に応じて指定）",
+                },
+              },
+              required: ["field", "operator"],
+            },
+            notificationLinkField: {
+              type: "string",
+              description: "通知後にリンクを入力するフィールド名",
             },
           },
+          required: [
+            "recordListId",
+            "slackChannelId",
+            "messageTemplate",
+            "notificationLinkField",
+          ],
         },
+        description: "複数の通知設定",
       },
     },
-  };
-
-  const uiSchema = {
-    settings: {
-      items: {
-        app: {
-          "ui:widget": "select",
-        },
-        primaryKeyField: {
-          "ui:field": "customPrimaryKeyField",
-          appId: (formData.settings || []).map((setting: any) => setting.app),
-        },
-      },
-    },
+    required: ["commonSettings", "notificationSettings"],
   };
 
   return (
     <Form
       schema={dynamicSchema as RJSFSchema}
-      uiSchema={uiSchema as UiSchema}
       validator={validator}
       formData={formData}
       onSubmit={handleSubmit}
-      onChange={(data) => setFormData(data.formData)}
-      // eslint-disable-next-line new-cap
-      fields={{ customPrimaryKeyField: CustomPrimaryKeyFieldWrapper(cacheAPI) }}
       onError={log("errors")}
     />
   );
