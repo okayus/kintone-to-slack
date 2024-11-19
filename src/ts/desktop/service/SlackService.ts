@@ -95,6 +95,6 @@ export class SlackService {
       throw new Error(`Failed to post message: ${data.error}`);
     }
 
-    return data.ts; // メッセージの ts を返す
+    return data.ts;
   }
 }

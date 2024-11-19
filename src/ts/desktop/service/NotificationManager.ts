@@ -41,7 +41,6 @@ export class NotificationManager {
 
     let threadTs: string | undefined = undefined;
 
-    // 各メッセージを投稿
     for (const message of messages) {
       threadTs = await this.slackService.postMessage(
         this.config.slackChannelId,
@@ -98,7 +97,7 @@ export class NotificationManager {
         const fieldValue = record[fieldCode]?.value;
         if (fieldValue === undefined) {
           console.warn(`フィールドコード "${fieldCode}" の値が見つかりません`);
-          return `{${fieldCode}}`; // 置き換えられない場合はそのまま残す
+          return `{${fieldCode}}`;
         }
         return fieldValue;
       });
@@ -113,13 +112,11 @@ export class NotificationManager {
         currentMessage.length + recordMessage.length + footer.length >
         MAX_LENGTH
       ) {
-        // 現在のメッセージを確定させ、新しいメッセージを開始
         currentMessage += footer;
         messages.push(currentMessage);
 
         currentMessage = `${title}\n${recordMessage}`;
       } else {
-        // 現在のメッセージに追加
         currentMessage += `${recordMessage}`;
       }
     });
@@ -138,12 +135,12 @@ export class NotificationManager {
     threadTs: string,
   ): Promise<void> {
     const slackMessageLink = `https://slack.com/app_redirect?channel=${this.config.slackChannelId}&message=${threadTs}`;
-    const notificationDateTime = new Date().toISOString(); // 通知日時を取得
+    const notificationDateTime = new Date().toISOString();
 
     const updatePromises = records.map((record) => {
-      const recordId = record.$id.value; // レコードID
+      const recordId = record.$id.value;
       const updatePayload = {
-        app: kintone.app.getId(), // アプリIDを取得
+        app: kintone.app.getId(),
         id: recordId,
         record: {
           [this.config.notificationLinkField]: {
