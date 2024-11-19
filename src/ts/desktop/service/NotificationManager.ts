@@ -28,6 +28,25 @@ export class NotificationManager {
   }
 
   public async notify(records: any[]): Promise<void> {
+    if (records.length === 0) {
+      return;
+    }
+    this.inviteMembersToChannel(records);
+
+    const messages = this.generateMessages(
+      records,
+      this.config.messageTemplate,
+    );
+    for (const message of messages) {
+      const response = await this.slackService.postMessage(
+        this.config.slackChannelId,
+        message,
+      );
+      console.log("response", response);
+    }
+  }
+
+  private async inviteMembersToChannel(records: RecordData[]): Promise<void> {
     const memberIds = new Set(
       records.flatMap((record) =>
         this.config.slackIdField
@@ -46,17 +65,6 @@ export class NotificationManager {
       await this.slackService.inviteMembersToChannel(
         this.config.slackChannelId,
         nonMembers,
-      );
-    }
-
-    const messages = this.generateMessages(
-      records,
-      this.config.messageTemplate,
-    );
-    for (const message of messages) {
-      const ts = await this.slackService.postMessage(
-        this.config.slackChannelId,
-        message,
       );
     }
   }
