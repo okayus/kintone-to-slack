@@ -20,6 +20,7 @@ export class NotificationManager {
       value: string;
     }> | null;
     notificationLinkField: string;
+    notificationDateTimeField: string;
   };
 
   constructor(slackService: SlackService, config: any) {
@@ -37,13 +38,22 @@ export class NotificationManager {
       records,
       this.config.messageTemplate,
     );
+
+    let threadTs: string | undefined = undefined;
+
+    // 各メッセージを投稿
     for (const message of messages) {
-      const response = await this.slackService.postMessage(
+      threadTs = await this.slackService.postMessage(
         this.config.slackChannelId,
         message,
+        threadTs, // スレッドを指定（初回は undefined なのでスレッド作成）
       );
-      console.log("response", response);
     }
+
+    if (!threadTs) {
+      throw new Error("Failed to post message");
+    }
+    await this.updateRecordsWithNotificationDetails(records, threadTs);
   }
 
   private async inviteMembersToChannel(records: RecordData[]): Promise<void> {
@@ -121,5 +131,38 @@ export class NotificationManager {
     }
 
     return messages;
+  }
+
+  private async updateRecordsWithNotificationDetails(
+    records: any[],
+    threadTs: string,
+  ): Promise<void> {
+    const slackMessageLink = `https://slack.com/app_redirect?channel=${this.config.slackChannelId}&message=${threadTs}`;
+    const notificationDateTime = new Date().toISOString(); // 通知日時を取得
+
+    const updatePromises = records.map((record) => {
+      const recordId = record.$id.value; // レコードID
+      const updatePayload = {
+        app: kintone.app.getId(), // アプリIDを取得
+        id: recordId,
+        record: {
+          [this.config.notificationLinkField]: {
+            value: slackMessageLink,
+          },
+          [this.config.notificationDateTimeField]: {
+            value: notificationDateTime,
+          },
+        },
+      };
+      return kintone.api("/k/v1/record", "PUT", updatePayload);
+    });
+
+    try {
+      await Promise.all(updatePromises);
+      console.log("Records successfully updated with notification details");
+    } catch (error) {
+      console.error("Failed to update records:", error);
+      throw new Error("Failed to update records with notification details");
+    }
   }
 }

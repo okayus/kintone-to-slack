@@ -61,31 +61,40 @@ export class SlackService {
     }
   }
 
-  async postMessage(channelId: string, text: string): Promise<string> {
+  async postMessage(
+    channelId: string,
+    text: string,
+    threadTs?: string,
+  ): Promise<string> {
     const url = "https://slack.com/api/chat.postMessage";
     const payload = {
       channel: channelId,
       text,
+      ...(threadTs && { thread_ts: threadTs }), // スレッド指定がある場合に追加
     };
     const headers = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${this.botToken}`,
     };
+
     const [responseBody, statusCode] = await kintone.proxy(
       url,
       "POST",
       headers,
       payload,
     );
+
     if (statusCode !== 200) {
       console.error("Error response from Slack:", responseBody);
       throw new Error("Failed to post message");
     }
+
     const data = JSON.parse(responseBody);
     if (!data.ok) {
       console.error("Slack API Error:", data.error);
       throw new Error(`Failed to post message: ${data.error}`);
     }
-    return data.ts;
+
+    return data.ts; // メッセージの ts を返す
   }
 }

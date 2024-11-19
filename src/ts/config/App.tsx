@@ -141,6 +141,10 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
               type: "string",
               description: "通知後にリンクを入力するフィールド名",
             },
+            notificationDateTimeField: {
+              type: "string",
+              description: "通知日時を入力するフィールド名",
+            },
           },
           required: [
             "recordListId",
