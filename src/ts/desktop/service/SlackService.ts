@@ -10,8 +10,6 @@ export class SlackService {
     const headers = {
       Authorization: `Bearer ${this.botToken}`,
     };
-    console.log("url", url);
-    console.log("headers", headers);
     const [responseBody, statusCode] = await kintone.proxy(
       url,
       "GET",

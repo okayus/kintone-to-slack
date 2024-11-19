@@ -72,6 +72,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
       },
       notificationSettings: {
         type: "array",
+        description: "複数の通知設定",
         items: {
           type: "object",
           properties: {
@@ -89,35 +90,52 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
             },
             slackIdField: {
               type: "array",
+              description: "チャンネルに招待するユーザーのIDのフィールド",
               items: {
                 type: "string",
               },
-              description: "チャンネルに招待するユーザーのIDのフィールド",
             },
             messageTemplate: {
-              type: "string",
+              type: "object",
               description:
                 "通知メッセージのテンプレート（例: '@[slackidフィールド] [文字列1行フィールド]）",
-            },
-            notificationCondition: {
-              type: "object",
-              description: "通知対象レコードの条件",
               properties: {
-                field: {
+                title: {
                   type: "string",
-                  description: "条件に使用するフィールド名",
+                  description: "メッセージタイトル",
                 },
-                operator: {
+                body: {
                   type: "string",
-                  enum: ["equals", "notEquals", "isEmpty", "isNotEmpty"],
-                  description: "条件演算子",
+                  description: "メッセージ本文",
                 },
-                value: {
-                  type: ["string", "null"],
-                  description: "条件値（必要に応じて指定）",
+                footer: {
+                  type: "string",
+                  description: "メッセージフッター",
                 },
               },
-              required: ["field", "operator"],
+            },
+            notificationCondition: {
+              type: "array",
+              description: "通知対象レコードの条件",
+              items: {
+                type: "object",
+                description: "AND条件",
+                properties: {
+                  field: {
+                    type: "string",
+                    description: "条件に使用するフィールド名",
+                  },
+                  operator: {
+                    type: "string",
+                    enum: ["equals", "notEquals", "isEmpty", "isNotEmpty"],
+                    description: "条件演算子",
+                  },
+                  value: {
+                    type: ["string", "null"],
+                    description: "条件値（必要に応じて指定）",
+                  },
+                },
+              },
             },
             notificationLinkField: {
               type: "string",
@@ -131,7 +149,6 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
             "notificationLinkField",
           ],
         },
-        description: "複数の通知設定",
       },
     },
     required: ["commonSettings", "notificationSettings"],
