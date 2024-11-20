@@ -20,9 +20,10 @@ const NotifyButton: React.FC<NotifyButtonProps> = ({
       await onClick();
     } catch (error) {
       console.error("エラーが発生しました:", error);
+      alert("エラーが発生しました");
     } finally {
       setIsLoading(false);
-      window.location.reload();
+      // window.location.reload();
     }
   };
 

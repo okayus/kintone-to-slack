@@ -105,4 +105,27 @@ export class SlackService {
 
     return data.ts;
   }
+
+  // エラー時にWebhookでSlackにエラー内容を通知する
+  async postErrorMessageToSlack(error: Error, webhookUrl: string) {
+    console.error("webhook error", error);
+    console.error("webhook url", webhookUrl);
+
+    const payload = {
+      text: `Error occurred in kintone app: ${error.message}`,
+    };
+
+    await kintone.proxy(
+      webhookUrl,
+      "POST",
+      {},
+      payload,
+      (resp) => {
+        console.log(resp);
+      },
+      (err) => {
+        console.error(err);
+      },
+    );
+  }
 }

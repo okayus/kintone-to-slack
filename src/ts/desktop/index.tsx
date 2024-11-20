@@ -26,7 +26,7 @@ interface KintoneEvent {
     const pluginConfig = kintone.plugin.app.getConfig(PLUGIN_ID).config;
     if (!pluginConfig) return;
 
-    const config = JSON.parse(pluginConfig).config;
+    const config: ConfigSchema = JSON.parse(pluginConfig).config;
     const slackService = new SlackService(config.commonSettings.slackBotToken);
 
     config.notificationSettings.forEach(
@@ -64,6 +64,11 @@ interface KintoneEvent {
               );
               alert("通知が完了しました");
             } catch (error) {
+              console.error("error config:", config);
+              await slackService.postErrorMessageToSlack(
+                error as Error,
+                config.commonSettings.errorNotificationWebhook,
+              );
               console.error("通知処理中にエラーが発生しました:", error);
               alert("通知処理中にエラーが発生しました");
             }
