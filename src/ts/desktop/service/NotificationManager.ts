@@ -14,11 +14,6 @@ export class NotificationManager {
     slackChannelId: string;
     slackIdField: string[];
     messageTemplate: MessageTemplate;
-    notificationCondition: Array<{
-      field: string;
-      operator: string;
-      value: string;
-    }> | null;
     notificationLinkField: string;
     notificationDateTimeField: string;
   };

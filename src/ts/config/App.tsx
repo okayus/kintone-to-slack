@@ -114,29 +114,6 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
                 },
               },
             },
-            notificationCondition: {
-              type: "array",
-              description: "通知対象レコードの条件",
-              items: {
-                type: "object",
-                description: "AND条件",
-                properties: {
-                  field: {
-                    type: "string",
-                    description: "条件に使用するフィールド名",
-                  },
-                  operator: {
-                    type: "string",
-                    enum: ["equals", "notEquals", "isEmpty", "isNotEmpty"],
-                    description: "条件演算子",
-                  },
-                  value: {
-                    type: ["string", "null"],
-                    description: "条件値（必要に応じて指定）",
-                  },
-                },
-              },
-            },
             notificationLinkField: {
               type: "string",
               description: "通知後にリンクを入力するフィールド名",
