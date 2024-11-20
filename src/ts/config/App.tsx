@@ -4,6 +4,7 @@ import Form from "@rjsf/mui";
 import validator from "@rjsf/validator-ajv8";
 
 import { CacheAPI } from "../common/util/CacheAPI";
+import Sdk from "../common/util/kintoneSdk";
 
 import type { kintoneType } from "../common/util/kintoneSdk";
 import type { Properties } from "@kintone/rest-api-client/lib/src/client/types";
@@ -41,6 +42,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
     notificationDateTimeFieldOptions,
     setNotificationDateTimeFieldOptions,
   ] = useState<any[]>([]);
+  const [viewIdOptions, setViewIdOptions] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
@@ -66,6 +68,17 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
         setNotificationDateTimeFieldOptions(
           notificationDateTimeFieldItemOptions,
         );
+
+        const responseViews = await Sdk.getViews(Number(kintone.app.getId()));
+        const viewOptions = Object.keys(responseViews.views).map((view) => {
+          return {
+            const: responseViews.views[view].id,
+            title: responseViews.views[view].name,
+          };
+        });
+        viewOptions.unshift({ const: "20", title: "（すべて）" });
+        console.log(viewOptions);
+        setViewIdOptions(viewOptions);
 
         const responseConfig = kintone.plugin.app.getConfig(pluginId);
         if (responseConfig.config) {
@@ -117,6 +130,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
             recordListId: {
               type: "string",
               description: "対象のレコード一覧のID",
+              oneOf: viewIdOptions,
             },
             buttonName: {
               type: "string",
