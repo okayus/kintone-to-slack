@@ -5,6 +5,8 @@ import validator from "@rjsf/validator-ajv8";
 
 import { CacheAPI } from "../common/util/CacheAPI";
 
+import type { kintoneType } from "../common/util/kintoneSdk";
+import type { Properties } from "@kintone/rest-api-client/lib/src/client/types";
 import type { IChangeEvent } from "@rjsf/core";
 import type { RJSFSchema } from "@rjsf/utils";
 
@@ -15,19 +17,55 @@ interface AppProps {
 
 const log = (type: string) => console.log.bind(console, type);
 
+const generateFieldOptions = (
+  properties: Properties,
+  fields: kintoneType[],
+) => {
+  const options = Object.keys(properties)
+    .filter((fieldCode) => fields.includes(properties[fieldCode].type))
+    .map((fieldCode) => {
+      return {
+        const: fieldCode,
+        title: properties[fieldCode].label,
+      };
+    });
+  options.unshift({ const: "", title: "" });
+  return options;
+};
+
 const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
-  const [appOptions, setAppOptions] = useState<any[]>([]);
+  const [slackIdFieldOptions, setSlackIdFieldOptions] = useState<any[]>([]);
+  const [notificationLinkFieldOptions, setNotificationLinkFieldOptions] =
+    useState<any[]>([]);
+  const [
+    notificationDateTimeFieldOptions,
+    setNotificationDateTimeFieldOptions,
+  ] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
     const fetchApps = async () => {
       try {
-        const response = await cacheAPI.getApps();
-        const appItemOptions = response.apps.map((app: any) => ({
-          const: app.appId,
-          title: app.name,
-        }));
-        setAppOptions(appItemOptions);
+        const response = await cacheAPI.getFields(Number(kintone.app.getId()));
+
+        const slackIdFieldItemOptions = generateFieldOptions(response, [
+          "SINGLE_LINE_TEXT",
+        ]);
+        setSlackIdFieldOptions(slackIdFieldItemOptions);
+
+        const notificationLinkFieldItemOptions = generateFieldOptions(
+          response,
+          ["LINK"],
+        );
+        setNotificationLinkFieldOptions(notificationLinkFieldItemOptions);
+
+        const notificationDateTimeFieldItemOptions = generateFieldOptions(
+          response,
+          ["DATETIME"],
+        );
+        setNotificationDateTimeFieldOptions(
+          notificationDateTimeFieldItemOptions,
+        );
 
         const responseConfig = kintone.plugin.app.getConfig(pluginId);
         if (responseConfig.config) {
@@ -93,6 +131,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
               description: "チャンネルに招待するユーザーのIDのフィールド",
               items: {
                 type: "string",
+                oneOf: slackIdFieldOptions,
               },
             },
             messageTemplate: {
@@ -117,10 +156,12 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
             notificationLinkField: {
               type: "string",
               description: "通知後にリンクを入力するフィールド名",
+              oneOf: notificationLinkFieldOptions,
             },
             notificationDateTimeField: {
               type: "string",
               description: "通知日時を入力するフィールド名",
+              oneOf: notificationDateTimeFieldOptions,
             },
           },
           required: [
