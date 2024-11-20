@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import Form from "@rjsf/mui";
 import validator from "@rjsf/validator-ajv8";
 
-import { CacheAPI } from "../common/util/CacheAPI";
 import Sdk from "../common/util/kintoneSdk";
 
 import type { kintoneType } from "../common/util/kintoneSdk";
@@ -13,7 +12,6 @@ import type { RJSFSchema } from "@rjsf/utils";
 
 interface AppProps {
   pluginId: string;
-  cacheAPI: CacheAPI;
 }
 
 const log = (type: string) => console.log.bind(console, type);
@@ -34,7 +32,7 @@ const generateFieldOptions = (
   return options;
 };
 
-const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
+const App: React.FC<AppProps> = ({ pluginId }) => {
   const [slackIdFieldOptions, setSlackIdFieldOptions] = useState<any[]>([]);
   const [notificationLinkFieldOptions, setNotificationLinkFieldOptions] =
     useState<any[]>([]);
@@ -48,7 +46,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
   useEffect(() => {
     const fetchApps = async () => {
       try {
-        const response = await cacheAPI.getFields(Number(kintone.app.getId()));
+        const response = await Sdk.getFields(Number(kintone.app.getId()));
 
         const slackIdFieldItemOptions = generateFieldOptions(response, [
           "SINGLE_LINE_TEXT",
@@ -77,7 +75,6 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
           };
         });
         viewOptions.unshift({ const: "20", title: "（すべて）" });
-        console.log(viewOptions);
         setViewIdOptions(viewOptions);
 
         const responseConfig = kintone.plugin.app.getConfig(pluginId);
@@ -90,7 +87,7 @@ const App: React.FC<AppProps> = ({ pluginId, cacheAPI }) => {
     };
 
     fetchApps();
-  }, [pluginId, cacheAPI]);
+  }, [pluginId]);
 
   const handleSubmit = (data: IChangeEvent<any>) => {
     const configSetting = { config: data.formData };
