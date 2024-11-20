@@ -29,52 +29,62 @@ export class NotificationManager {
   }
 
   public async notify(records: any[]): Promise<void> {
-    if (records.length === 0) {
-      return;
-    }
-    this.inviteMembersToChannel(records);
+    try {
+      if (records.length === 0) {
+        return;
+      }
+      await this.inviteMembersToChannel(records);
 
-    const messages = this.generateMessages(
-      records,
-      this.config.messageTemplate,
-    );
-
-    let threadTs: string | undefined = undefined;
-
-    for (const message of messages) {
-      threadTs = await this.slackService.postMessage(
-        this.config.slackChannelId,
-        message,
-        threadTs, // スレッドを指定（初回は undefined なのでスレッド作成）
+      const messages = this.generateMessages(
+        records,
+        this.config.messageTemplate,
       );
-    }
 
-    if (!threadTs) {
-      throw new Error("Failed to post message");
+      let threadTs: string | undefined = undefined;
+
+      for (const message of messages) {
+        threadTs = await this.slackService.postMessage(
+          this.config.slackChannelId,
+          message,
+          threadTs, // スレッドを指定（初回は undefined なのでスレッド作成）
+        );
+      }
+
+      if (!threadTs) {
+        throw new Error("Failed to post message");
+      }
+      await this.updateRecordsWithNotificationDetails(records, threadTs);
+    } catch (error) {
+      console.error("Failed to notify:", error);
+      throw new Error("Failed to notify");
     }
-    await this.updateRecordsWithNotificationDetails(records, threadTs);
   }
 
   private async inviteMembersToChannel(records: RecordData[]): Promise<void> {
-    const memberIds = new Set(
-      records.flatMap((record) =>
-        this.config.slackIdField
-          .map((fieldCode) => record[fieldCode]?.value)
-          .filter(Boolean),
-      ),
-    );
-    const currentMembers = await this.slackService.getChannelMembers(
-      this.config.slackChannelId,
-    );
-    const nonMembers = Array.from(memberIds).filter(
-      (id) => !currentMembers.includes(id),
-    );
-
-    if (nonMembers.length > 0) {
-      await this.slackService.inviteMembersToChannel(
-        this.config.slackChannelId,
-        nonMembers,
+    try {
+      const memberIds = new Set(
+        records.flatMap((record) =>
+          this.config.slackIdField
+            .map((fieldCode) => record[fieldCode]?.value)
+            .filter(Boolean),
+        ),
       );
+      const currentMembers = await this.slackService.getChannelMembers(
+        this.config.slackChannelId,
+      );
+      const nonMembers = Array.from(memberIds).filter(
+        (id) => !currentMembers.includes(id),
+      );
+
+      if (nonMembers.length > 0) {
+        await this.slackService.inviteMembersToChannel(
+          this.config.slackChannelId,
+          nonMembers,
+        );
+      }
+    } catch (error) {
+      console.error("Failed to invite members to channel:", error);
+      throw new Error("Failed to invite members to channel");
     }
   }
 

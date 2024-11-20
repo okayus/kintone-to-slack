@@ -50,17 +50,25 @@ export class SlackService {
       headers,
       payload,
     );
+
     if (statusCode !== 200) {
       console.error("Error response from Slack:", responseBody);
       throw new Error("Failed to invite members to channel");
     }
+
     const data = JSON.parse(responseBody);
     if (!data.ok) {
       console.error("Slack API Error:", data.error);
+
+      // 無効なユーザーが含まれていた場合に詳細をログに記録
+      if (data.error === "users_not_found") {
+        console.error(`Invalid users in the request: ${userIds}`);
+      }
+
+      // 必ずエラーをスロー
       throw new Error(`Failed to invite members to channel: ${data.error}`);
     }
   }
-
   async postMessage(
     channelId: string,
     text: string,

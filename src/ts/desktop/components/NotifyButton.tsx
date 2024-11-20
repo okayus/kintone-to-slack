@@ -22,6 +22,7 @@ const NotifyButton: React.FC<NotifyButtonProps> = ({
       console.error("エラーが発生しました:", error);
     } finally {
       setIsLoading(false);
+      window.location.reload();
     }
   };
 
