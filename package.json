@@ -12,7 +12,8 @@
     "pack": "kintone-plugin-packer --ppk private.ppk --out dist/plugin.zip dist/out",
     "upload": ". ./.env && kintone-plugin-uploader dist/plugin.zip --base-url $KINTONE_BASE_URL --username $KINTONE_USERNAME --password $KINTONE_PASSWORD",
     "lint": "eslint src",
-    "test": "vitest"
+    "test": "vitest",
+    "generate-types": "json2ts config.schema.json -o src/types/Config.ts"
   },
   "devDependencies": {
     "@babel/core": "^7.22.17",
@@ -36,6 +37,7 @@
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
     "jsdom": "^25.0.1",
+    "json-schema-to-typescript": "^15.0.3",
     "npm-run-all": "^4.1.5",
     "npm-watch": "^0.13.0",
     "prettier": "^3.0.3",
