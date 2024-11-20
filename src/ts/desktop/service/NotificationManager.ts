@@ -23,7 +23,9 @@ export class NotificationManager {
     this.config = config;
   }
 
-  public async notify(records: any[]): Promise<void> {
+  public async notify(
+    records: Array<Record<string, { value: string }>>,
+  ): Promise<void> {
     try {
       if (records.length === 0) {
         return;
@@ -136,7 +138,7 @@ export class NotificationManager {
   }
 
   private async updateRecordsWithNotificationDetails(
-    records: any[],
+    records: Array<Record<string, { value: string }>>,
     threadTs: string,
   ): Promise<void> {
     const slackMessageLink = `https://slack.com/app_redirect?channel=${this.config.slackChannelId}&message=${threadTs}`;

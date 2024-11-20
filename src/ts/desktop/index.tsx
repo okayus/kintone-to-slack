@@ -14,7 +14,7 @@ const renderButton = (container: HTMLElement, onClick: () => Promise<void>) => {
 };
 
 interface KintoneEvent {
-  record: any;
+  record: Record<string, { value: string }>;
   viewId: number;
 }
 
