@@ -1,16 +1,9 @@
 import Sdk from "./kintoneSdk";
 
-export class CacheAPI {
-  private apps: any = [];
-  private forms: any = {};
-  private layouts: any = {};
+import type { Properties } from "@kintone/rest-api-client/lib/src/client/types";
 
-  public async getApps() {
-    if (this.apps.length === 0) {
-      this.apps = await Sdk.getApps();
-    }
-    return this.apps;
-  }
+export class CacheAPI {
+  private forms: { [appId: number]: Properties } = {};
 
   public async getFields(appId: number | null) {
     if (appId === null) {
@@ -21,16 +14,5 @@ export class CacheAPI {
       this.forms[appId] = await Sdk.getFields(appId);
     }
     return this.forms[appId];
-  }
-
-  public async getFormLayout(appId: number | null) {
-    if (appId === null) {
-      return {};
-    }
-
-    if (!this.layouts[appId]) {
-      this.layouts[appId] = await Sdk.getFormLayout(appId);
-    }
-    return this.layouts[appId];
   }
 }
