@@ -1,0 +1,78 @@
+{
+  "type": "object",
+  "properties": {
+    "commonSettings": {
+      "type": "object",
+      "properties": {
+        "slackBotToken": {
+          "type": "string",
+          "description": "Slackボットのトークン"
+        },
+        "errorNotificationWebhook": {
+          "type": "string",
+          "description": "エラー時の通知用Webhook URL"
+        }
+      },
+      "required": ["slackBotToken", "errorNotificationWebhook"],
+      "description": "共通設定"
+    },
+    "notificationSettings": {
+      "type": "array",
+      "description": "複数の通知設定",
+      "items": {
+        "type": "object",
+        "properties": {
+          "recordListId": {
+            "type": "string",
+            "description": "対象のレコード一覧のID"
+          },
+          "buttonName": {
+            "type": "string",
+            "description": "通知ボタンの表示名"
+          },
+          "slackChannelId": {
+            "type": "string",
+            "description": "通知先のSlackチャンネルID"
+          },
+          "slackIdField": {
+            "type": "array",
+            "description": "チャンネルに招待するユーザーのIDのフィールド",
+            "items": {
+              "type": "string"
+            }
+          },
+          "messageTemplate": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "メッセージタイトル"
+              },
+              "body": { "type": "string", "description": "メッセージ本文" },
+              "footer": {
+                "type": "string",
+                "description": "メッセージフッター"
+              }
+            },
+            "required": ["title", "body", "footer"]
+          },
+          "notificationLinkField": {
+            "type": "string",
+            "description": "通知後にリンクを入力するフィールド名"
+          },
+          "notificationDateTimeField": {
+            "type": "string",
+            "description": "通知日時を入力するフィールド名"
+          }
+        },
+        "required": [
+          "recordListId",
+          "slackChannelId",
+          "messageTemplate",
+          "notificationLinkField"
+        ]
+      }
+    }
+  },
+  "required": ["commonSettings", "notificationSettings"]
+}

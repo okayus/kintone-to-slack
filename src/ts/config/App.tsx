@@ -5,6 +5,7 @@ import validator from "@rjsf/validator-ajv8";
 
 import Sdk from "../common/util/kintoneSdk";
 
+import type { ConfigSchema } from "../../types/Config";
 import type { kintoneType } from "../common/util/kintoneSdk";
 import type { Properties } from "@kintone/rest-api-client/lib/src/client/types";
 import type { IChangeEvent } from "@rjsf/core";
@@ -41,7 +42,7 @@ const App: React.FC<AppProps> = ({ pluginId }) => {
     setNotificationDateTimeFieldOptions,
   ] = useState<any[]>([]);
   const [viewIdOptions, setViewIdOptions] = useState<any[]>([]);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<ConfigSchema>({} as ConfigSchema);
 
   useEffect(() => {
     const fetchApps = async () => {

@@ -1,5 +1,7 @@
 import { SlackService } from "./SlackService";
 
+import type { ConfigSchema } from "../../../types/Config";
+
 type RecordData = Record<string, { value: string }>;
 type MessageTemplate = {
   title: string;
@@ -9,16 +11,12 @@ type MessageTemplate = {
 
 export class NotificationManager {
   private slackService: SlackService;
-  private config: {
-    recordListId: string;
-    slackChannelId: string;
-    slackIdField: string[];
-    messageTemplate: MessageTemplate;
-    notificationLinkField: string;
-    notificationDateTimeField: string;
-  };
+  private config: ConfigSchema["notificationSettings"][number];
 
-  constructor(slackService: SlackService, config: any) {
+  constructor(
+    slackService: SlackService,
+    config: ConfigSchema["notificationSettings"][number],
+  ) {
     this.slackService = slackService;
     this.config = config;
   }
@@ -60,10 +58,10 @@ export class NotificationManager {
   private async inviteMembersToChannel(records: RecordData[]): Promise<void> {
     try {
       const memberIds = new Set(
-        records.flatMap((record) =>
-          this.config.slackIdField
-            .map((fieldCode) => record[fieldCode]?.value)
-            .filter(Boolean),
+        records.flatMap(
+          (record) =>
+            this.config.slackIdField ??
+            [].map((fieldCode) => record[fieldCode]?.value).filter(Boolean),
         ),
       );
       const currentMembers = await this.slackService.getChannelMembers(
@@ -153,7 +151,7 @@ export class NotificationManager {
           [this.config.notificationLinkField]: {
             value: slackMessageLink,
           },
-          [this.config.notificationDateTimeField]: {
+          [String(this.config.notificationDateTimeField)]: {
             value: notificationDateTime,
           },
         },
