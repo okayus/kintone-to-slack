@@ -1,6 +1,6 @@
 import { SlackService } from "./SlackService";
 
-import type { ConfigSchema } from "../../../types/Config";
+import type { ConfigSchema } from "../../types/Config";
 
 type RecordData = Record<string, { value: string }>;
 type MessageTemplate = {
@@ -57,6 +57,7 @@ export class NotificationManager {
 
   private async inviteMembersToChannel(records: RecordData[]): Promise<void> {
     try {
+      console.log("Inviting members to channel", this.config.slackChannelId);
       const memberIds = new Set(
         records.flatMap(
           (record) =>
@@ -64,12 +65,15 @@ export class NotificationManager {
             [].map((fieldCode) => record[fieldCode]?.value).filter(Boolean),
         ),
       );
+      console.log("Member IDs:", memberIds);
       const currentMembers = await this.slackService.getChannelMembers(
         this.config.slackChannelId,
       );
+      console.log("Current members:", currentMembers);
       const nonMembers = Array.from(memberIds).filter(
         (id) => !currentMembers.includes(id),
       );
+      console.log("Non-members:", nonMembers);
 
       if (nonMembers.length > 0) {
         await this.slackService.inviteMembersToChannel(
@@ -83,7 +87,7 @@ export class NotificationManager {
     }
   }
 
-  private generateMessages(
+  public generateMessages(
     records: RecordData[],
     messageTemplate: MessageTemplate,
   ): string[] {
@@ -91,8 +95,7 @@ export class NotificationManager {
     const title = messageTemplate.title;
     const footer = messageTemplate.footer;
 
-    let currentMessage = `${title}\n`;
-    const MAX_LENGTH = 3000;
+    const MAX_LENGTH = 3000 - title.length - footer.length;
 
     const replacePlaceholders = (
       template: string,
@@ -108,25 +111,26 @@ export class NotificationManager {
       });
     };
 
-    records.forEach((record, index) => {
+    let currentMessage = `${title}\n`;
+
+    records.forEach((record) => {
       const body = replacePlaceholders(messageTemplate.body, record);
       const recordMessage = `${body}\n`;
 
-      // 次のレコードを追加したときに3000文字を超えるかチェック
-      if (
-        currentMessage.length + recordMessage.length + footer.length >
-        MAX_LENGTH
-      ) {
+      if (currentMessage.length + recordMessage.length > MAX_LENGTH) {
+        // 現在のメッセージを確定
         currentMessage += footer;
         messages.push(currentMessage);
 
+        // 次のメッセージを新しく開始
         currentMessage = `${title}\n${recordMessage}`;
       } else {
-        currentMessage += `${recordMessage}`;
+        // 現在のメッセージにレコードを追加
+        currentMessage += recordMessage;
       }
     });
 
-    // 最後のメッセージを確定させる
+    // 最後のメッセージを確定
     if (currentMessage.length > title.length + footer.length) {
       currentMessage += footer;
       messages.push(currentMessage);

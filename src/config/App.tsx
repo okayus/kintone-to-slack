@@ -5,8 +5,8 @@ import validator from "@rjsf/validator-ajv8";
 
 import Sdk from "../common/util/kintoneSdk";
 
-import type { ConfigSchema } from "../../types/Config";
 import type { kintoneType } from "../common/util/kintoneSdk";
+import type { ConfigSchema } from "../types/Config";
 import type { Properties } from "@kintone/rest-api-client/lib/src/client/types";
 import type { IChangeEvent } from "@rjsf/core";
 import type { RJSFSchema } from "@rjsf/utils";

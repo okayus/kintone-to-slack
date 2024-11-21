@@ -28,11 +28,11 @@
     ],
     "paths": {
       "@desktop/*": ["./src/ts/desktop/*"],
-      "@config/*": ["./src/ts/config/*"],
+      "@config/*": ["src/config/*"],
       "@assets/*": ["./assets/*"]
     }
   },
-  "include": ["./src/ts/**/*.ts", "./src/ts/**/*.tsx","vitest-setup.ts"],
+  "include": ["./src/**/*.ts", "./src/**/*.tsx","vitest-setup.ts"],
   "exclude": ["dist", "node_modules"],
   "sourceMap": true
 }

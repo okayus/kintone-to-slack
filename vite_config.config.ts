@@ -21,7 +21,7 @@ export default defineConfig({
 
     rollupOptions: {
       input: {
-        config: `${path.resolve(root, "src/ts/config/config.tsx")}/`,
+        config: `${path.resolve(root, "src/config/index.tsx")}/`,
       },
       output: {
         format: "iife",

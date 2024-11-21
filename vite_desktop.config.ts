@@ -21,7 +21,7 @@ export default defineConfig({
 
     rollupOptions: {
       input: {
-        desktop: `${path.resolve(root, "src/ts/desktop/index.tsx")}/`,
+        desktop: `${path.resolve(root, "src/desktop/index.tsx")}/`,
       },
       output: {
         format: "iife",

@@ -7,7 +7,7 @@ import NotifyButton from "./components/NotifyButton";
 import { NotificationManager } from "./service/NotificationManager";
 import { SlackService } from "./service/SlackService";
 
-import type { ConfigSchema } from "../../types/Config";
+import type { ConfigSchema } from "../types/Config";
 
 const renderButton = (container: HTMLElement, onClick: () => Promise<void>) => {
   createRoot(container).render(
