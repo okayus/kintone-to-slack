@@ -58,11 +58,16 @@ export class NotificationManager {
   private async inviteMembersToChannel(records: RecordData[]): Promise<void> {
     try {
       console.log("Inviting members to channel", this.config.slackChannelId);
+      const slackIdField: string[] = this.config.slackIdField || [];
+      if (slackIdField.length === 0) {
+        console.warn("Slack ID field is not set");
+        return;
+      }
       const memberIds = new Set(
-        records.flatMap(
-          (record) =>
-            this.config.slackIdField ??
-            [].map((fieldCode) => record[fieldCode]?.value).filter(Boolean),
+        records.flatMap((record) =>
+          slackIdField
+            .map((fieldCode) => record[fieldCode]?.value)
+            .filter(Boolean),
         ),
       );
       console.log("Member IDs:", memberIds);
