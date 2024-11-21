@@ -1,6 +1,6 @@
 import { SlackService } from "./SlackService";
 
-import type { ConfigSchema } from "../../types/Config";
+import type { ConfigSchema } from "../../shared/types/Config";
 
 type RecordData = Record<string, { value: string }>;
 type MessageTemplate = {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { NotificationManager } from "../src/desktop/service/NotificationManager";
-import { SlackService } from "../src/desktop/service/SlackService";
+import { NotificationManager } from "../../src/desktop/service/NotificationManager";
+import { SlackService } from "../../src/desktop/service/SlackService";
 
 const mockSlackService = {} as SlackService;
 const mockConfig = {

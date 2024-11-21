@@ -1,10 +1,10 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 
-import App from "./App";
+import ConfigForm from "./ConfigForm";
 
 (async (PLUGIN_ID) => {
   createRoot(document.getElementById("config")!).render(
-    <App pluginId={PLUGIN_ID as string} />,
+    <ConfigForm pluginId={PLUGIN_ID as string} />,
   );
 })(kintone.$PLUGIN_ID);

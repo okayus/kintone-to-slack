@@ -3,10 +3,10 @@ import React, { useEffect, useState } from "react";
 import Form from "@rjsf/mui";
 import validator from "@rjsf/validator-ajv8";
 
-import Sdk from "../common/util/kintoneSdk";
+import Sdk from "../shared/util/kintoneSdk";
 
-import type { kintoneType } from "../common/util/kintoneSdk";
-import type { ConfigSchema } from "../types/Config";
+import type { ConfigSchema } from "../shared/types/Config";
+import type { kintoneType } from "../shared/util/kintoneSdk";
 import type { Properties } from "@kintone/rest-api-client/lib/src/client/types";
 import type { IChangeEvent } from "@rjsf/core";
 import type { RJSFSchema } from "@rjsf/utils";
@@ -33,7 +33,7 @@ const generateFieldOptions = (
   return options;
 };
 
-const App: React.FC<AppProps> = ({ pluginId }) => {
+const ConfigForm: React.FC<AppProps> = ({ pluginId }) => {
   const [slackIdFieldOptions, setSlackIdFieldOptions] = useState<any[]>([]);
   const [notificationLinkFieldOptions, setNotificationLinkFieldOptions] =
     useState<any[]>([]);
@@ -199,4 +199,4 @@ const App: React.FC<AppProps> = ({ pluginId }) => {
   );
 };
 
-export default App;
+export default ConfigForm;
