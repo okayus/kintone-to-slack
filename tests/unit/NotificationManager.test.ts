@@ -7,9 +7,9 @@ const mockSlackService = {} as SlackService;
 const mockConfig = {
   slackChannelId: "C123",
   messageTemplate: {
-    title: "Title",
-    body: "Record6789{field1}{field2}",
-    footer: "End45",
+    title: "Notification Title",
+    body: "Record: {field1}, {field2}",
+    footer: "End of message",
   },
   slackIdField: "slackId",
   notificationLinkField: "notificationLink",
@@ -23,7 +23,7 @@ describe("NotificationManager", () => {
   );
 
   describe("generateMessages", () => {
-    it("should return an empty array when no records are provided", () => {
+    it("レコードが空の場合、空の配列を返す", () => {
       const messages = notificationManager.generateMessages(
         [],
         mockConfig.messageTemplate,
@@ -31,7 +31,7 @@ describe("NotificationManager", () => {
       expect(messages).toEqual([]);
     });
 
-    it("should generate messages within the length limit", () => {
+    it("文字数制限内でメッセージを生成する", () => {
       const records = [
         { field1: { value: "Value1" }, field2: { value: "Value2" } },
         { field1: { value: "Value3" }, field2: { value: "Value4" } },
@@ -41,13 +41,13 @@ describe("NotificationManager", () => {
         mockConfig.messageTemplate,
       );
       expect(messages.length).toBe(1);
-      expect(messages[0]).toContain("Title");
-      expect(messages[0]).toContain("Record6789Value1Value2");
-      expect(messages[0]).toContain("Record6789Value3Value4");
-      expect(messages[0]).toContain("End45");
+      expect(messages[0]).toContain("Notification Title");
+      expect(messages[0]).toContain("Record: Value1, Value2");
+      expect(messages[0]).toContain("Record: Value3, Value4");
+      expect(messages[0]).toContain("End of message");
     });
 
-    it("should split messages when the combined length exceeds the limit", () => {
+    it("メッセージの合計文字数が制限を超える場合、分割する", () => {
       const records = Array.from({ length: 200 }, () => ({
         field1: { value: `aaaaa` },
         field2: { value: `bbbbb` },
@@ -59,34 +59,29 @@ describe("NotificationManager", () => {
       );
 
       messages.forEach((message, index) => {
-        // メッセージ内でのレコードの一致を検出
-        const messageRecords = message.match(/Record6789aaaaabbbbb/g) || [];
+        const messageRecords = message.match(/Record:/g) || [];
         const isLastMessage = index === messages.length - 1;
 
-        // 各部分の長さ
-        const titleLength = mockConfig.messageTemplate.title.length; // Title
-        const footerLength = mockConfig.messageTemplate.footer.length; // End45
-        const recordLength = "Record6789aaaaabbbbb".length + 1; // レコード長 (改行コード込み)
-        const maxCharacters = 3000; // 最大文字数
+        const titleLength = mockConfig.messageTemplate.title.length;
+        const footerLength = mockConfig.messageTemplate.footer.length;
+        const recordLength = "Record: aaaaa, bbbbb".length + 1;
+        const maxCharacters = 3000;
 
-        // 1メッセージに含まれる最大レコード数
         const maxRecordsPerMessage = Math.floor(
           (maxCharacters - titleLength - footerLength) / recordLength,
         );
 
-        // 最後のメッセージでは余りを計算
         const expectedCount = isLastMessage
-          ? records.length % maxRecordsPerMessage || maxRecordsPerMessage
-          : maxRecordsPerMessage;
+          ? (records.length % maxRecordsPerMessage) + 1 || maxRecordsPerMessage
+          : maxRecordsPerMessage - 1;
 
-        // テスト実行
         expect(messageRecords.length).toBe(expectedCount);
-        expect(message).toContain("Title");
-        expect(message).toContain("End45");
+        expect(message).toContain("Notification Title");
+        expect(message).toContain("End of message");
       });
     });
 
-    it("should replace placeholders with record values", () => {
+    it("プレースホルダーをレコード値に置き換える", () => {
       const records = [
         { field1: { value: "Value1" }, field2: { value: "Value2" } },
       ];
@@ -94,10 +89,10 @@ describe("NotificationManager", () => {
         records,
         mockConfig.messageTemplate,
       );
-      expect(messages[0]).toContain("Record6789Value1Value2");
+      expect(messages[0]).toContain("Record: Value1, Value2");
     });
 
-    it("should warn if a placeholder value is missing", () => {
+    it("プレースホルダーの値が不足している場合、警告を出す", () => {
       const records = [{ field1: { value: "Value1" } }];
       const consoleWarnSpy = vi
         .spyOn(console, "warn")
@@ -106,7 +101,7 @@ describe("NotificationManager", () => {
         records,
         mockConfig.messageTemplate,
       );
-      expect(messages[0]).toContain("Record6789Value1{field2}");
+      expect(messages[0]).toContain("Record: Value1, {field2}");
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         'フィールドコード "field2" の値が見つかりません',
       );
