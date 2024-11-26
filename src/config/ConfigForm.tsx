@@ -9,7 +9,7 @@ import type { ConfigSchema } from "../shared/types/Config";
 import type { kintoneType } from "../shared/util/kintoneSdk";
 import type { Properties } from "@kintone/rest-api-client/lib/src/client/types";
 import type { IChangeEvent } from "@rjsf/core";
-import type { RJSFSchema } from "@rjsf/utils";
+import type { RJSFSchema, UiSchema } from "@rjsf/utils";
 
 interface AppProps {
   pluginId: string;
@@ -188,9 +188,25 @@ const ConfigForm: React.FC<AppProps> = ({ pluginId }) => {
     required: ["commonSettings", "notificationSettings"],
   };
 
+  const UiSchema: UiSchema = {
+    notificationSettings: {
+      items: {
+        messageTemplate: {
+          title: {
+            "ui:widget": "textarea",
+          },
+          footer: {
+            "ui:widget": "textarea",
+          },
+        },
+      },
+    },
+  };
+
   return (
     <Form
       schema={dynamicSchema as RJSFSchema}
+      uiSchema={UiSchema}
       validator={validator}
       formData={formData}
       onSubmit={handleSubmit}
