@@ -109,7 +109,7 @@ export class NotificationManager {
     try {
       const messages: string[] = [];
       const title = messageTemplate.title;
-      const footer = messageTemplate.footer;
+      const footer = messageTemplate.footer || "";
 
       const MAX_LENGTH = 3000 - title.length - footer.length;
 

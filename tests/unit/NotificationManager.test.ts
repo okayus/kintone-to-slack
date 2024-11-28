@@ -107,5 +107,25 @@ describe("NotificationManager", () => {
       );
       consoleWarnSpy.mockRestore();
     });
+
+    it("footerがundefinedの場合、headerとbodyのみでメッセージを生成する", () => {
+      const records = [
+        { field1: { value: "Value1" }, field2: { value: "Value2" } },
+      ];
+      const customTemplate = {
+        ...mockConfig.messageTemplate,
+        footer: undefined,
+      };
+
+      const messages = notificationManager.generateMessages(
+        records,
+        customTemplate,
+      );
+
+      expect(messages.length).toBe(1);
+      expect(messages[0]).toContain("Notification Title");
+      expect(messages[0]).toContain("Record: Value1, Value2");
+      expect(messages[0]).not.toContain("End of message");
+    });
   });
 });
