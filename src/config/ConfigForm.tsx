@@ -115,6 +115,10 @@ const ConfigForm: React.FC<AppProps> = ({ pluginId }) => {
             type: "string",
             description: "エラー時の通知用Webhook URL",
           },
+          errorNotificationHeader: {
+            type: "string",
+            description: "エラー時の通知用ヘッダー",
+          },
         },
         required: ["slackBotToken", "errorNotificationWebhook"],
         description: "共通設定",
@@ -189,6 +193,17 @@ const ConfigForm: React.FC<AppProps> = ({ pluginId }) => {
   };
 
   const UiSchema: UiSchema = {
+    commonSettings: {
+      slackBotToken: {
+        "ui:widget": "password",
+      },
+      errorNotificationWebhook: {
+        "ui:widget": "password",
+      },
+      errorNotificationHeader: {
+        "ui:widget": "textarea",
+      },
+    },
     notificationSettings: {
       items: {
         messageTemplate: {
