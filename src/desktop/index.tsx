@@ -69,8 +69,8 @@ interface KintoneEvent {
                 error as Error,
                 config.commonSettings.errorNotificationWebhook,
               );
-              console.error("通知処理中にエラーが発生しました:", error);
-              alert("通知処理中にエラーが発生しました");
+            } finally {
+              window.location.reload();
             }
           });
         }

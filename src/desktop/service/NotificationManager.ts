@@ -51,6 +51,7 @@ export class NotificationManager {
       await this.updateRecordsWithNotificationDetails(records, threadTs);
     } catch (error) {
       console.error("Failed to notify:", error);
+      alert(`エラーが発生しました\n${error}`);
       throw new Error("Failed to notify");
     }
   }
