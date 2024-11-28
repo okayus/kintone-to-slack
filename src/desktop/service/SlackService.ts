@@ -18,14 +18,16 @@ export class SlackService {
     );
 
     if (statusCode !== 200) {
-      console.error("Error response from Slack:", responseBody);
-      throw new Error("Failed to fetch channel members");
+      throw new Error(
+        `Slack API conversations.membersメソッドのエラー: ${responseBody}`,
+      );
     }
 
     const data = JSON.parse(responseBody);
     if (!data.ok) {
-      console.error("Slack API Error:", data.error);
-      throw new Error(`Failed to fetch channel members: ${data.error}`);
+      throw new Error(
+        `Slack API conversations.membersメソッドのエラー: ${data.error}、チャンネルID: ${channelId}`,
+      );
     }
 
     return data.members;
@@ -52,21 +54,16 @@ export class SlackService {
     );
 
     if (statusCode !== 200) {
-      console.error("Error response from Slack:", responseBody);
-      throw new Error("Failed to invite members to channel");
+      throw new Error(
+        `Slack API conversations.inviteメソッドのエラー: ${responseBody}`,
+      );
     }
 
     const data = JSON.parse(responseBody);
     if (!data.ok) {
-      console.error("Slack API Error:", data.error);
-
-      // 無効なユーザーが含まれていた場合に詳細をログに記録
-      if (data.error === "users_not_found") {
-        console.error(`Invalid users in the request: ${userIds}`);
-      }
-
-      // 必ずエラーをスロー
-      throw new Error(`Failed to invite members to channel: ${data.error}`);
+      throw new Error(
+        `Slack API conversations.inviteメソッドのエラー: ${data.error}、ユーザーID: ${userIds}`,
+      );
     }
   }
   async postMessage(
@@ -93,14 +90,18 @@ export class SlackService {
     );
 
     if (statusCode !== 200) {
-      console.error("Error response from Slack:", responseBody);
-      throw new Error("Failed to post message");
+      // console.error("Error response from Slack:", responseBody);
+      // エラーを日本語で通知する
+      throw new Error(
+        `Slack API chat.postMessageメソッドのエラー: ${responseBody}`,
+      );
     }
 
     const data = JSON.parse(responseBody);
     if (!data.ok) {
-      console.error("Slack API Error:", data.error);
-      throw new Error(`Failed to post message: ${data.error}`);
+      throw new Error(
+        `Slack API chat.postMessageメソッドのエラー: ${data.error}、チャンネルID: ${channelId}`,
+      );
     }
 
     return data.ts;
