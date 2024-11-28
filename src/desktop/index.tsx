@@ -8,6 +8,7 @@ import { NotificationManager } from "./service/NotificationManager";
 import { SlackService } from "./service/SlackService";
 
 import type { ConfigSchema } from "../shared/types/Config";
+import { vi } from 'vitest';
 
 const renderButton = (container: HTMLElement, onClick: () => Promise<void>) => {
   createRoot(container).render(
@@ -18,6 +19,7 @@ const renderButton = (container: HTMLElement, onClick: () => Promise<void>) => {
 interface KintoneEvent {
   record: Record<string, { value: string }>;
   viewId: number;
+  viewName: string;
 }
 
 // メイン処理
@@ -64,13 +66,13 @@ interface KintoneEvent {
               );
               alert("通知が完了しました");
             } catch (error) {
-              console.error("error config:", config);
+              const errorMessage = `Slack一括通知プラグインでエラーが発生しました。\nappId: ${kintone.app.getId()}\nviewName: ${event.viewName}\nviewId: ${event.viewId}\n${(error as Error).message}`;
               await slackService.postErrorMessageToSlack(
-                error as Error,
+                errorMessage,
                 config.commonSettings.errorNotificationWebhook,
               );
             } finally {
-              window.location.reload();
+              // window.location.reload();
             }
           });
         }

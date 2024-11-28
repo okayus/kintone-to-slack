@@ -1,3 +1,5 @@
+import { HierarchicalError } from "../../shared/errors/HierarchicalError";
+
 import { SlackService } from "./SlackService";
 
 import type { ConfigSchema } from "../../shared/types/Config";
@@ -50,9 +52,14 @@ export class NotificationManager {
       }
       await this.updateRecordsWithNotificationDetails(records, threadTs);
     } catch (error) {
-      console.error("Failed to notify:", error);
-      alert(`エラーが発生しました\n${error}`);
-      throw new Error("Failed to notify");
+      // alert(`エラーが発生しました\n${error}`);
+      // throw new Error(`エラー発生メソッド：notify\nエラー内容：${error}`);
+      const errorMessage =
+        error instanceof HierarchicalError
+          ? (error as Error).toString()
+          : (error as Error).message;
+      alert(`エラーが発生しました\n${errorMessage}`);
+      throw new Error(`Slack通知エラー\n ${errorMessage}`);
     }
   }
 
@@ -88,8 +95,10 @@ export class NotificationManager {
         );
       }
     } catch (error) {
-      console.error("Failed to invite members to channel:", error);
-      throw new Error("Failed to invite members to channel");
+      throw new HierarchicalError(
+        "エラー発生メソッド：inviteMembersToChannel",
+        error as Error,
+      );
     }
   }
 
@@ -97,52 +106,61 @@ export class NotificationManager {
     records: RecordData[],
     messageTemplate: MessageTemplate,
   ): string[] {
-    const messages: string[] = [];
-    const title = messageTemplate.title;
-    const footer = messageTemplate.footer;
+    try {
+      const messages: string[] = [];
+      const title = messageTemplate.title;
+      const footer = messageTemplate.footer;
 
-    const MAX_LENGTH = 3000 - title.length - footer.length;
+      const MAX_LENGTH = 3000 - title.length - footer.length;
 
-    const replacePlaceholders = (
-      template: string,
-      record: RecordData,
-    ): string => {
-      return template.replace(/\{(.*?)\}/g, (_, fieldCode) => {
-        const fieldValue = record[fieldCode]?.value;
-        if (fieldValue === undefined) {
-          console.warn(`フィールドコード "${fieldCode}" の値が見つかりません`);
-          return `{${fieldCode}}`;
+      const replacePlaceholders = (
+        template: string,
+        record: RecordData,
+      ): string => {
+        return template.replace(/\{(.*?)\}/g, (_, fieldCode) => {
+          const fieldValue = record[fieldCode]?.value;
+          if (fieldValue === undefined) {
+            console.warn(
+              `フィールドコード "${fieldCode}" の値が見つかりません`,
+            );
+            return `{${fieldCode}}`;
+          }
+          return fieldValue;
+        });
+      };
+
+      let currentMessage = `${title}\n`;
+
+      records.forEach((record) => {
+        const body = replacePlaceholders(messageTemplate.body, record);
+        const recordMessage = `${body}\n`;
+
+        if (currentMessage.length + recordMessage.length > MAX_LENGTH) {
+          // 現在のメッセージを確定
+          currentMessage += footer;
+          messages.push(currentMessage);
+
+          // 次のメッセージを新しく開始
+          currentMessage = `${title}\n${recordMessage}`;
+        } else {
+          // 現在のメッセージにレコードを追加
+          currentMessage += recordMessage;
         }
-        return fieldValue;
       });
-    };
 
-    let currentMessage = `${title}\n`;
-
-    records.forEach((record) => {
-      const body = replacePlaceholders(messageTemplate.body, record);
-      const recordMessage = `${body}\n`;
-
-      if (currentMessage.length + recordMessage.length > MAX_LENGTH) {
-        // 現在のメッセージを確定
+      // 最後のメッセージを確定
+      if (currentMessage.length > title.length + footer.length) {
         currentMessage += footer;
         messages.push(currentMessage);
-
-        // 次のメッセージを新しく開始
-        currentMessage = `${title}\n${recordMessage}`;
-      } else {
-        // 現在のメッセージにレコードを追加
-        currentMessage += recordMessage;
       }
-    });
 
-    // 最後のメッセージを確定
-    if (currentMessage.length > title.length + footer.length) {
-      currentMessage += footer;
-      messages.push(currentMessage);
+      return messages;
+    } catch (error) {
+      throw new HierarchicalError(
+        "エラー発生メソッド：generateMessages",
+        error as Error,
+      );
     }
-
-    return messages;
   }
 
   private async updateRecordsWithNotificationDetails(
@@ -171,10 +189,11 @@ export class NotificationManager {
 
     try {
       await Promise.all(updatePromises);
-      console.log("Records successfully updated with notification details");
     } catch (error) {
-      console.error("Failed to update records:", error);
-      throw new Error("Failed to update records with notification details");
+      throw new HierarchicalError(
+        "エラー発生メソッド：updateRecordsWithNotificationDetails",
+        error as Error,
+      );
     }
   }
 }
