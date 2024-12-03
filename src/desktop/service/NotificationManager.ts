@@ -1,4 +1,5 @@
 import { HierarchicalError } from "../../shared/errors/HierarchicalError";
+import Sdk from "../../shared/util/kintoneSdk";
 
 import { SlackService } from "./SlackService";
 
@@ -170,10 +171,14 @@ export class NotificationManager {
     const slackMessageLink = `https://slack.com/app_redirect?channel=${this.config.slackChannelId}&message=${threadTs}`;
     const notificationDateTime = new Date().toISOString();
 
-    const updatePromises = records.map((record) => {
-      const recordId = record.$id.value;
-      const updatePayload = {
-        app: kintone.app.getId(),
+    const updatePayloads = records.map((record) => {
+      const recordId = record.$id?.value;
+      if (!recordId) {
+        console.warn("レコードIDが見つかりません:", record);
+        throw new Error("無効なレコードID");
+      }
+
+      return {
         id: recordId,
         record: {
           [this.config.notificationLinkField]: {
@@ -184,15 +189,15 @@ export class NotificationManager {
           },
         },
       };
-      return kintone.api("/k/v1/record", "PUT", updatePayload);
     });
 
     try {
-      await Promise.all(updatePromises);
+      const appId = kintone.app.getId() as number;
+      await Sdk.updateAllRecords(appId, updatePayloads);
     } catch (error) {
       throw new HierarchicalError(
         "エラー発生メソッド：updateRecordsWithNotificationDetails",
-        error as Error,
+        error instanceof Error ? error : new Error(JSON.stringify(error)),
       );
     }
   }

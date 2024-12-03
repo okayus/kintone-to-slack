@@ -51,6 +51,18 @@ export class KintoneUrlUtil {
     });
     return res;
   };
+
+  public updateAllRecords = async (
+    appId: number,
+    records: Array<{ id: string; record: Record<string, any> }>,
+  ) => {
+    const restApiClient = this.getRestApiClient();
+    const res = await restApiClient.record.updateAllRecords({
+      app: appId,
+      records,
+    });
+    return res;
+  };
 }
 
 export class Sdk {
@@ -81,6 +93,14 @@ export class Sdk {
     record: Record<string, any>,
   ) {
     const res = await this.kintoneUrlUtil.updateRecord(appId, recordId, record);
+    return res;
+  }
+
+  public async updateAllRecords(
+    appId: number,
+    records: Array<{ id: string; record: Record<string, any> }>,
+  ) {
+    const res = await this.kintoneUrlUtil.updateAllRecords(appId, records);
     return res;
   }
 }
