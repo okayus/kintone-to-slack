@@ -23,7 +23,7 @@ describe("kintoneSdk.getRecords", () => {
   const fields = ["field1", "field2"];
   const query = "status = 'completed'";
 
-  it("should fetch all records within the limit", async () => {
+  it("制限内のすべてのレコードを取得できること", async () => {
     const mockRecords = Array.from({ length: 1000 }, (_, i) => ({ id: i + 1 }));
 
     mockClient.record.getRecords
@@ -58,7 +58,7 @@ describe("kintoneSdk.getRecords", () => {
     });
   });
 
-  it("handles the maximum total records limit", async () => {
+  it("取得するレコードが最大件数に達した場合を処理できること", async () => {
     mockClient.record.getRecords.mockResolvedValue({
       records: Array(500).fill({}),
     });
@@ -67,7 +67,7 @@ describe("kintoneSdk.getRecords", () => {
     expect(result.records.length).toBe(10000);
   });
 
-  it("should handle empty result set", async () => {
+  it("結果が空の場合に正しく処理できること", async () => {
     mockClient.record.getRecords.mockResolvedValueOnce({ records: [] });
 
     const result = await kintoneApiService.getRecords(appId, fields, query);
