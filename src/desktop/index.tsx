@@ -62,6 +62,16 @@ interface KintoneEvent {
                 alert("対象レコードがありません");
                 return;
               }
+              // 10,000件だった場合は続行するか確認
+              if (records.length === 10000) {
+                if (
+                  !confirm(
+                    "レコード取得件数が最大値の10,000件に達しました。続行しますか？",
+                  )
+                ) {
+                  return;
+                }
+              }
 
               await notificationManager.notify(
                 records as Array<Record<string, { value: string }>>,
