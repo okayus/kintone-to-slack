@@ -3,88 +3,56 @@ import {
   KintoneRestAPIClient,
 } from "@kintone/rest-api-client";
 
-export class KintoneUrlUtil {
-  public getRestApiClient(): KintoneRestAPIClient {
-    return new KintoneRestAPIClient({});
+export class KintoneSdk {
+  private restApiClient: KintoneRestAPIClient;
+
+  constructor(
+    restApiClient: KintoneRestAPIClient = new KintoneRestAPIClient({}),
+  ) {
+    this.restApiClient = restApiClient;
   }
 
-  public fetchFields = async (appId: number, preview: boolean = true) => {
-    const restApiClient = this.getRestApiClient();
+  public async fetchFields(appId: number, preview: boolean = true) {
     const fields = (
-      await restApiClient.app.getFormFields({ app: appId, preview })
+      await this.restApiClient.app.getFormFields({ app: appId, preview })
     ).properties;
     return fields;
-  };
-
-  public getViews = async (appId: number) => {
-    const restApiClient = this.getRestApiClient();
-    const views = await restApiClient.app.getViews({ app: appId });
-    return views;
-  };
-
-  public getRecords = async (
-    appId: number,
-    fields: string[],
-    query: string,
-    totalCount: boolean = false,
-  ) => {
-    const restApiClient = this.getRestApiClient();
-    const records = await restApiClient.record.getRecords({
-      app: appId,
-      fields: fields,
-      query: query,
-      totalCount: totalCount,
-    });
-    return records;
-  };
-
-  public updateRecord = async (
-    appId: number,
-    recordId: number,
-    record: Record<string, any>,
-  ) => {
-    const restApiClient = this.getRestApiClient();
-    const res = await restApiClient.record.updateRecord({
-      app: appId,
-      id: recordId,
-      record: record,
-    });
-    return res;
-  };
-
-  public updateAllRecords = async (
-    appId: number,
-    records: Array<{ id: string; record: Record<string, any> }>,
-  ) => {
-    const restApiClient = this.getRestApiClient();
-    const res = await restApiClient.record.updateAllRecords({
-      app: appId,
-      records,
-    });
-    return res;
-  };
-}
-
-export class Sdk {
-  private kintoneUrlUtil: KintoneUrlUtil;
-
-  constructor() {
-    this.kintoneUrlUtil = new KintoneUrlUtil();
-  }
-
-  public async getFields(appId: number) {
-    const res = await this.kintoneUrlUtil.fetchFields(appId);
-    return res;
   }
 
   public async getViews(appId: number) {
-    const res = await this.kintoneUrlUtil.getViews(appId);
-    return res;
+    const views = await this.restApiClient.app.getViews({ app: appId });
+    return views;
   }
 
-  public async getRecords(appId: number, fields: string[], query: string) {
-    const res = await this.kintoneUrlUtil.getRecords(appId, fields, query);
-    return res;
+  public async getRecords(
+    appId: number,
+    fields: string[] = [],
+    query: string = "",
+  ) {
+    const MAX_READ_LIMIT = 500;
+    const MAX_TOTAL_RECORDS = 10000;
+
+    let allRecords: Array<Record<string, any>> = [];
+    let offset = 0;
+
+    while (allRecords.length < MAX_TOTAL_RECORDS) {
+      const effectiveQuery = query.trim() ? `${query} ` : "";
+      const paginatedQuery = `${effectiveQuery}limit ${MAX_READ_LIMIT} offset ${offset}`;
+
+      const response = await this.restApiClient.record.getRecords({
+        app: appId,
+        fields,
+        query: paginatedQuery,
+      });
+
+      allRecords = allRecords.concat(response.records);
+
+      if (response.records.length < MAX_READ_LIMIT) break;
+
+      offset += MAX_READ_LIMIT;
+    }
+
+    return { records: allRecords };
   }
 
   public async updateRecord(
@@ -92,7 +60,11 @@ export class Sdk {
     recordId: number,
     record: Record<string, any>,
   ) {
-    const res = await this.kintoneUrlUtil.updateRecord(appId, recordId, record);
+    const res = await this.restApiClient.record.updateRecord({
+      app: appId,
+      id: recordId,
+      record,
+    });
     return res;
   }
 
@@ -100,11 +72,12 @@ export class Sdk {
     appId: number,
     records: Array<{ id: string; record: Record<string, any> }>,
   ) {
-    const res = await this.kintoneUrlUtil.updateAllRecords(appId, records);
+    const res = await this.restApiClient.record.updateAllRecords({
+      app: appId,
+      records,
+    });
     return res;
   }
 }
-
-export default new Sdk();
 
 export type kintoneType = KintoneFormFieldProperty.OneOf["type"];
