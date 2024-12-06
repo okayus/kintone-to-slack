@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 
-import Sdk from "../shared/util/kintoneSdk";
+import { KintoneSdk } from "../shared/util/kintoneSdk";
 
 import NotifyButton from "./components/NotifyButton";
 import { NotificationManager } from "./service/NotificationManager";
@@ -29,6 +29,7 @@ interface KintoneEvent {
 
     const config: ConfigSchema = JSON.parse(pluginConfig).config;
     const slackService = new SlackService(config.commonSettings.slackBotToken);
+    const kintoneSdk = new KintoneSdk();
 
     config.notificationSettings.forEach(
       (notificationSetting: ConfigSchema["notificationSettings"][number]) => {
@@ -38,6 +39,7 @@ interface KintoneEvent {
           const notificationManager = new NotificationManager(
             slackService,
             notificationSetting,
+            kintoneSdk,
           );
 
           const headerMenuSpace = kintone.app.getHeaderMenuSpaceElement();
@@ -52,8 +54,9 @@ interface KintoneEvent {
               if (!appId) throw new Error("アプリIDを取得できませんでした");
 
               const condition = kintone.app.getQueryCondition() || "";
-              const records = (await Sdk.getRecords(appId, [], condition))
-                .records;
+              const records = (
+                await kintoneSdk.getRecords(appId, [], condition)
+              ).records;
 
               if (!records.length) {
                 alert("対象レコードがありません");

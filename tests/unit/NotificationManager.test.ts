@@ -2,24 +2,30 @@ import { describe, expect, it, vi } from "vitest";
 
 import { NotificationManager } from "../../src/desktop/service/NotificationManager";
 import { SlackService } from "../../src/desktop/service/SlackService";
+import { KintoneSdk } from "../../src/shared/util/kintoneSdk";
+
+import type { ConfigSchema } from "../../src/shared/types/Config";
 
 const mockSlackService = {} as SlackService;
 const mockConfig = {
+  recordListId: "1",
   slackChannelId: "C123",
   messageTemplate: {
     title: "Notification Title",
     body: "Record: {field1}, {field2}",
     footer: "End of message",
   },
-  slackIdField: "slackId",
+  slackIdField: ["slackId"],
   notificationLinkField: "notificationLink",
   notificationDateTimeField: "notificationDateTime",
-};
+} as ConfigSchema["notificationSettings"][number];
+const mockkintoneSdk = {} as KintoneSdk;
 
 describe("NotificationManager", () => {
   const notificationManager = new NotificationManager(
     mockSlackService,
     mockConfig,
+    mockkintoneSdk,
   );
 
   describe("generateMessages", () => {

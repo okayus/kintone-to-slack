@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Form from "@rjsf/mui";
 import validator from "@rjsf/validator-ajv8";
 
-import Sdk from "../shared/util/kintoneSdk";
+import { KintoneSdk } from "../shared/util/kintoneSdk";
 
 import type { ConfigSchema } from "../shared/types/Config";
 import type { kintoneType } from "../shared/util/kintoneSdk";
@@ -47,7 +47,10 @@ const ConfigForm: React.FC<AppProps> = ({ pluginId }) => {
   useEffect(() => {
     const fetchApps = async () => {
       try {
-        const response = await Sdk.getFields(Number(kintone.app.getId()));
+        const kintoneSdk = new KintoneSdk();
+        const response = await kintoneSdk.fetchFields(
+          Number(kintone.app.getId()),
+        );
 
         const slackIdFieldItemOptions = generateFieldOptions(response, [
           "SINGLE_LINE_TEXT",
@@ -68,7 +71,9 @@ const ConfigForm: React.FC<AppProps> = ({ pluginId }) => {
           notificationDateTimeFieldItemOptions,
         );
 
-        const responseViews = await Sdk.getViews(Number(kintone.app.getId()));
+        const responseViews = await kintoneSdk.getViews(
+          Number(kintone.app.getId()),
+        );
         const viewOptions = Object.keys(responseViews.views).map((view) => {
           return {
             const: responseViews.views[view].id,

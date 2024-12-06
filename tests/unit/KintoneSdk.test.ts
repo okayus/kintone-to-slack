@@ -15,7 +15,7 @@ vi.mock("@kintone/rest-api-client", () => {
   };
 });
 
-describe("KintoneUrlUtil.getRecords", () => {
+describe("kintoneSdk.getRecords", () => {
   const mockClient = new KintoneRestAPIClient();
   const kintoneApiService = new KintoneSdk(mockClient); // モックを注入
 

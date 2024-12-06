@@ -1,5 +1,5 @@
 import { HierarchicalError } from "../../shared/errors/HierarchicalError";
-import Sdk from "../../shared/util/kintoneSdk";
+import { KintoneSdk } from "../../shared/util/kintoneSdk";
 
 import { SlackService } from "./SlackService";
 
@@ -15,13 +15,16 @@ type MessageTemplate = {
 export class NotificationManager {
   private slackService: SlackService;
   private config: ConfigSchema["notificationSettings"][number];
+  private kintoneSdk: KintoneSdk;
 
   constructor(
     slackService: SlackService,
     config: ConfigSchema["notificationSettings"][number],
+    kintoneSdk: KintoneSdk,
   ) {
     this.slackService = slackService;
     this.config = config;
+    this.kintoneSdk = kintoneSdk;
   }
 
   public async notify(
@@ -193,7 +196,7 @@ export class NotificationManager {
 
     try {
       const appId = kintone.app.getId() as number;
-      await Sdk.updateAllRecords(appId, updatePayloads);
+      await this.kintoneSdk.updateAllRecords(appId, updatePayloads);
     } catch (error) {
       throw new HierarchicalError(
         "エラー発生メソッド：updateRecordsWithNotificationDetails",
